@@ -1,0 +1,467 @@
+# Copyright (C) 2025 Shadi gaafar
+# This file is distributed under the GPLv2.
+msgid ""
+msgstr ""
+"Project-Id-Version: Musahimoun 1.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/musahimoun\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2025-09-11T17:33:39+02:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.11.0\n"
+"X-Domain: musahimoun\n"
+
+#. Plugin Name of the plugin
+#: musahimoun.php
+#: inc/register-blocks.php:42
+msgid "Musahimoun"
+msgstr ""
+
+#. Description of the plugin
+#: musahimoun.php
+msgid "This plugin allows you to choose an author, create a guest author or choose multiple authors and contributors.."
+msgstr ""
+
+#. Author of the plugin
+#: musahimoun.php
+msgid "Shadi gaafar"
+msgstr ""
+
+#: inc/class-contributor-list-table.php:120
+#: inc/menu/edit-page.php:111
+#: inc/menu/role-page.php:108
+msgid "Name"
+msgstr ""
+
+#: inc/class-contributor-list-table.php:121
+msgid "Posts"
+msgstr ""
+
+#: inc/class-contributor-list-table.php:292
+msgid "Edit"
+msgstr ""
+
+#: inc/class-contributor-list-table.php:293
+#: inc/class-contributor-list-table.php:375
+msgid "Delete"
+msgstr ""
+
+#: inc/class-contributor-list-table.php:296
+msgid "User"
+msgstr ""
+
+#: inc/class-contributor-list-table.php:390
+#: inc/class-contributor-list-table.php:404
+msgid "Security check failed."
+msgstr ""
+
+#: inc/class-contributor-list-table.php:427
+msgid "Are you sure you want to delete the selected contributor? This is permanent delete!"
+msgstr ""
+
+#: inc/class-mshmn-contributor.php:265
+#: inc/meta-box.php:17
+msgid "Authors/Contributors"
+msgstr ""
+
+#. translators: comma
+#: inc/class-mshmn-contributor.php:290
+msgid ", "
+msgstr ""
+
+#: inc/class-mshmn-contributor.php:364
+msgid "Contributors"
+msgstr ""
+
+#: inc/class-mshmn-contributor.php:370
+msgid "Contributor row layout"
+msgstr ""
+
+#: inc/class-mshmn-contributor.php:371
+#: inc/class-mshmn-contributor.php:380
+msgctxt "Block pattern description"
+msgid "Basic Ready to use layout for authors/contributors"
+msgstr ""
+
+#: inc/class-mshmn-contributor.php:379
+msgid "Contributor Box layout"
+msgstr ""
+
+#: inc/menu/contributor-list-page.php:34
+msgid "Add New Guest Contributor"
+msgstr ""
+
+#: inc/menu/contributor-list-page.php:35
+#: inc/menu/role-page.php:87
+msgid "Add New Role"
+msgstr ""
+
+#: inc/menu/contributor-list-page.php:38
+msgid "Search Contributors"
+msgstr ""
+
+#: inc/menu/contributor-list-page.php:46
+msgid "*Contributor is a general term here, it could be a writer, reviewer, proofreader, fact checker, etc."
+msgstr ""
+
+#: inc/menu/edit-page.php:21
+msgid "Choose Avatar"
+msgstr ""
+
+#: inc/menu/edit-page.php:22
+#: inc/menu/edit-page.php:125
+msgid "Choose Image"
+msgstr ""
+
+#: inc/menu/edit-page.php:71
+msgid "Author updated successfully."
+msgstr ""
+
+#: inc/menu/edit-page.php:74
+msgid "Error updating author. Please try again."
+msgstr ""
+
+#: inc/menu/edit-page.php:81
+msgid "Author added successfully."
+msgstr ""
+
+#: inc/menu/edit-page.php:90
+msgid "Error adding author. Please try again."
+msgstr ""
+
+#: inc/menu/edit-page.php:105
+msgid "Edit Guest Contributor"
+msgstr ""
+
+#: inc/menu/edit-page.php:115
+msgid "Email"
+msgstr ""
+
+#: inc/menu/edit-page.php:119
+msgid "Description"
+msgstr ""
+
+#: inc/menu/edit-page.php:123
+msgid "Avatar"
+msgstr ""
+
+#: inc/menu/edit-page.php:136
+msgid "Save Author"
+msgstr ""
+
+#: inc/menu/page-registrations.php:19
+msgid "Musahimoun: Contributors"
+msgstr ""
+
+#: inc/menu/page-registrations.php:20
+msgid "Mushahimoun"
+msgstr ""
+
+#: inc/menu/page-registrations.php:30
+msgid "Add new contributor author"
+msgstr ""
+
+#: inc/menu/page-registrations.php:31
+msgid "Add new"
+msgstr ""
+
+#: inc/menu/page-registrations.php:40
+msgid "Contributor's Roles In Posts"
+msgstr ""
+
+#: inc/menu/page-registrations.php:41
+msgid "Roles"
+msgstr ""
+
+#: inc/menu/page-registrations.php:50
+#: inc/menu/page-registrations.php:51
+msgid "Settings"
+msgstr ""
+
+#: inc/menu/role-page.php:51
+msgid "Role updated successfully."
+msgstr ""
+
+#: inc/menu/role-page.php:53
+msgid "Error updating role. Please try again."
+msgstr ""
+
+#: inc/menu/role-page.php:60
+msgid "Role added successfully."
+msgstr ""
+
+#: inc/menu/role-page.php:67
+msgid "Error adding role. Please try again."
+msgstr ""
+
+#: inc/menu/role-page.php:84
+msgid "Select Role"
+msgstr ""
+
+#: inc/menu/role-page.php:102
+msgid "Loading..."
+msgstr ""
+
+#: inc/menu/role-page.php:103
+msgid "Loading role data..."
+msgstr ""
+
+#: inc/menu/role-page.php:112
+msgid "You can name this role as you like, for example, \"Fact-checker\""
+msgstr ""
+
+#: inc/menu/role-page.php:116
+msgid "Prefix"
+msgstr ""
+
+#: inc/menu/role-page.php:120
+msgid "The prefix is the text displayed on the frontend before the person's name to indicate their role. For example, you might use 'Fact-checked by' as a prefix to highlight the fact-checker's contribution."
+msgstr ""
+
+#: inc/menu/role-page.php:124
+msgid "Show Avatar"
+msgstr ""
+
+#: inc/menu/role-page.php:128
+msgid "Check this box if you want to show the avatar of contributors under this role."
+msgstr ""
+
+#: inc/menu/role-page.php:133
+msgid "Role Icon"
+msgstr ""
+
+#: inc/menu/role-page.php:140
+#: inc/menu/role-page.php:167
+msgid "No icon selected."
+msgstr ""
+
+#: inc/menu/role-page.php:143
+msgid "Select Icon"
+msgstr ""
+
+#: inc/menu/role-page.php:144
+msgid "Remove Icon"
+msgstr ""
+
+#: inc/menu/role-page.php:146
+msgid "Choose an icon for this role from the media library."
+msgstr ""
+
+#: inc/menu/role-page.php:151
+msgid "Save Role"
+msgstr ""
+
+#: inc/menu/role-page.php:155
+msgid "Roles are useful for categorizing authors based on their specific functions within a post. For instance, if a post features an author and a separate fact checker, you can create distinct roles such as \"Author\" and \"Fact Checker.\" When editing a post, you can then assign each person to their respective role, providing clarity on their contributions."
+msgstr ""
+
+#: inc/menu/role-page.php:168
+msgid "Failed to load role data."
+msgstr ""
+
+#: inc/menu/role-page.php:169
+msgid "An error occurred while loading role data."
+msgstr ""
+
+#: inc/menu/role-page.php:170
+msgid "You can not delete default role."
+msgstr ""
+
+#: inc/menu/role-page.php:171
+msgid "Are you sure you want to delete this role?"
+msgstr ""
+
+#: inc/menu/role-page.php:173
+msgid "Role deleted successfully."
+msgstr ""
+
+#: inc/menu/role-page.php:174
+msgid "Failed to delete role."
+msgstr ""
+
+#: inc/menu/role-page.php:175
+msgid "An error occurred while deleting the role."
+msgstr ""
+
+#: inc/menu/role-page.php:176
+msgid "No role selected to delete."
+msgstr ""
+
+#: inc/menu/role-page.php:177
+msgid "Delete Role"
+msgstr ""
+
+#: inc/menu/settings-page.php:54
+msgid "General"
+msgstr ""
+
+#: inc/menu/settings-page.php:62
+msgid "Select Post Types"
+msgstr ""
+
+#: inc/menu/settings-page.php:74
+msgid "Author Archives Display"
+msgstr ""
+
+#: inc/menu/settings-page.php:86
+msgid "Migration"
+msgstr ""
+
+#: inc/menu/settings-page.php:92
+msgid "Migrate from other plugins"
+msgstr ""
+
+#: inc/menu/settings-page.php:110
+msgid "Select the post types and author archive settings for your site."
+msgstr ""
+
+#: inc/menu/settings-page.php:176
+msgid "Settings Saved"
+msgstr ""
+
+#: inc/menu/settings-page.php:187
+msgid "Save Settings"
+msgstr ""
+
+#: inc/menu/settings-page.php:211
+msgid "Migrate authors and avatars from other plugins (PublishPress Authors) to Musahimoun. Make sure PublishPress Authors plugin is activated before migration"
+msgstr ""
+
+#: inc/menu/settings-page.php:223
+msgid "Migrate Authors & Avatars"
+msgstr ""
+
+#: inc/menu/settings-page.php:248
+msgid "Migration completed."
+msgstr ""
+
+#: inc/rest/contributors-rest.php:29
+msgid "Optional search term to filter users and guest authors by name."
+msgstr ""
+
+#: inc/rest/contributors-rest.php:39
+msgid "Optional to filter users and guests by IDs"
+msgstr ""
+
+#: musahimoun.php:159
+msgid "This plugin will not work with non-block themes. Please switch to a block theme for full functionality."
+msgstr ""
+
+#: musahimoun.php:181
+msgid "Author"
+msgstr ""
+
+#: musahimoun.php:182
+msgid "Written by"
+msgstr ""
+
+#: front/src/blocks/contributor-avatar/edit.js:33
+msgid "Width"
+msgstr ""
+
+#: front/src/blocks/contributor-avatar/edit.js:41
+msgid "Border"
+msgstr ""
+
+#: front/src/blocks/contributor-avatar/edit.js:43
+msgid "Radius"
+msgstr ""
+
+#: front/src/blocks/contributor-biography/edit.js:31
+msgid "Contributor Bio"
+msgstr ""
+
+#: front/src/blocks/contributor-name/edit.js:51
+msgid "Contributor Name"
+msgstr ""
+
+#: front/src/blocks/contributor-name/edit.js:54
+msgid ","
+msgstr ""
+
+#: front/src/blocks/contributor-name/edit.js:80
+msgid "Link Settings"
+msgstr ""
+
+#: front/src/blocks/contributor-name/edit.js:82
+msgid "Link to Contributor Archive"
+msgstr ""
+
+#: front/src/blocks/contributor-name/edit.js:88
+msgid "Open in New Tab"
+msgstr ""
+
+#: front/src/blocks/meta-box/contributorSearch.js:45
+msgid "contributorSearch component: Error fetching contributors:"
+msgstr ""
+
+#: front/src/blocks/meta-box/roleAssignment.js:58
+msgid "Assign Contributors to Roles"
+msgstr ""
+
+#: front/src/blocks/meta-box/roleAssignment.js:75
+msgid "--Select Role--"
+msgstr ""
+
+#: front/src/blocks/meta-box/roleAssignment.js:76
+msgid "SELECT ROLE:"
+msgstr ""
+
+#: front/src/blocks/meta-box/roleAssignment.js:84
+msgid "SEARCH CONTRIBUTOR:"
+msgstr ""
+
+#: front/src/blocks/meta-box/roleAssignment.js:88
+msgid "SELECT CONTRIBUTOR:"
+msgstr ""
+
+#: front/src/blocks/meta-box/roleAssignment.js:92
+msgid "Search..."
+msgstr ""
+
+#: front/src/blocks/meta-box/roleAssignment.js:105
+msgid "SELECTED CONTRIBUTORS:"
+msgstr ""
+
+#: front/src/blocks/meta-box/roleAssignment.js:115
+msgid "Add Another Role"
+msgstr ""
+
+#: front/src/blocks/role-prefix/edit.js:21
+msgid "Repetition"
+msgstr ""
+
+#: front/src/blocks/role-prefix/edit.js:23
+msgid "Show for each contributor"
+msgstr ""
+
+#: front/src/blocks/role-prefix/edit.js:24
+msgid "Should prefix be repeated for each contributor?"
+msgstr ""
+
+#: front/src/blocks/role-prefix/edit.js:49
+msgid "Role Prefix:"
+msgstr ""
+
+#: front/src/blocks/role-prefix/block.json
+msgctxt "block title"
+msgid "Musahimoun: Role Prefix"
+msgstr ""
+
+#: front/src/blocks/role-prefix/block.json
+msgctxt "block description"
+msgid "Displays Role Prefix for contributors"
+msgstr ""
+
+#: front/src/blocks/role-prefix/block.json
+msgctxt "block keyword"
+msgid "role"
+msgstr ""
+
+#: front/src/blocks/role-prefix/block.json
+msgctxt "block keyword"
+msgid "role prefix"
+msgstr ""

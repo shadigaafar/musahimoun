@@ -1,0 +1,25 @@
+{
+	"apiVersion": 3,
+	"name": "mshmn/author-query-loop",
+	"title": "Musahimoun: Contributor Query Loop",
+	"category": "musahimoun",
+	"description": "This component allows you to display all of the contributors, along with their data.",
+	"textdomain": "mousahimoun",
+	"keywords": ["contributor query", "contributor", "query"],
+	"attributes": {},
+	"supports": {
+		"html": false,
+		"spacing": {
+			"margin": true,
+			"padding": true,
+			"blockGap": true
+		},
+		"inserter": false,
+		"layout": {
+			"allowSwitching": true
+		}
+	},
+	"usesContext": ["postId", "postType", "queryId", "roleAssignment"],
+	"editorScript": "file:./index.js",
+	"style": "file:./style.css"
+}

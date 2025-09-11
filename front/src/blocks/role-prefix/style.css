@@ -1,0 +1,6 @@
+.mshmn-role-prefix-block {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 5px;
+}

@@ -1,0 +1,24 @@
+{
+    "translation-revision-date": "YEAR-MO-DA HO:MI+ZONE",
+    "generator": "WP-CLI\/2.11.0",
+    "source": "front\/src\/blocks\/contributor-avatar\/edit.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "ar",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Width": [
+                "\u0627\u0644\u0639\u064f\u0631\u0636"
+            ],
+            "Border": [
+                "\u0627\u0644\u062d\u062f"
+            ],
+            "Radius": [
+                "\u0646\u0635\u0641 \u0627\u0644\u0642\u0637\u0631"
+            ]
+        }
+    }
+}

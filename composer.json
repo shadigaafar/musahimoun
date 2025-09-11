@@ -1,0 +1,23 @@
+{
+    "require-dev": {
+        "dealerdirect/phpcodesniffer-composer-installer": "*",
+        "wp-coding-standards/wpcs": "*",
+        "phpcompatibility/phpcompatibility-wp": "*",
+        "squizlabs/php_codesniffer": "*"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "scripts": {
+        "update-trans": [
+            "wp i18n make-pot . languages/musahimoun.pot --exclude=front/dist",
+            "wp i18n make-json languages --pretty-print --no-purge",
+            "wp i18n update-po  languages/musahimoun.pot languages",
+            "wp i18n make-mo languages"
+        ]
+    },
+    "require": {
+    }
+}

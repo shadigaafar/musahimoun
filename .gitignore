@@ -1,0 +1,7 @@
+blocks-lib/build/*
+front/dist/*
+blocks-lib/node_modules/*
+front/node_modules/*
+vendor/*
+musahimoun.zip
+

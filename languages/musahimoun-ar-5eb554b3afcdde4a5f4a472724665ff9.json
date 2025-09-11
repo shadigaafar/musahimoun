@@ -1,0 +1,27 @@
+{
+    "translation-revision-date": "YEAR-MO-DA HO:MI+ZONE",
+    "generator": "WP-CLI\/2.11.0",
+    "source": "front\/src\/blocks\/role-prefix\/edit.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "ar",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Role Prefix:": [
+                "\u0628\u0627\u062f\u0626\u0629 \u0627\u0644\u062f\u0648\u0631:"
+            ],
+            "Repetition": [
+                "\u0627\u0644\u062a\u0643\u0631\u0627\u0631"
+            ],
+            "Should prefix be repeated for each contributor?": [
+                "\u0623\u064a\u062c\u0628 \u0623\u0646 \u062a\u062a\u0643\u0631\u0631 \u0627\u0644\u0628\u0627\u062f\u0626\u0629 \u0644\u0643\u0644 \u0645\u0633\u0627\u0647\u0645\u061f"
+            ],
+            "Show for each contributor": [
+                "\u0627\u0638\u0647\u0627\u0631 \u0644\u0643\u0644 \u0645\u0633\u0627\u0647\u0645"
+            ]
+        }
+    }
+}

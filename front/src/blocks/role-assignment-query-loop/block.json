@@ -1,0 +1,25 @@
+{
+	"apiVersion": 3,
+	"name": "mshmn/role-assignement-query-loop",
+	"title": "Musahimoun: Role Assignment Query Loop",
+	"category": "musahimoun",
+	"description": "This component allows you to display all of the contributors of a post base by their roles (authors or else), along with their data.",
+	"textdomain": "mousahimoun",
+	"keywords": ["role assignment", "author", "authors", "roles"],
+	"attributes": {},
+	"supports": {
+		"html": false,
+		"spacing": {
+			"margin": true,
+			"padding": true,
+			"blockGap": true
+		},
+		"inserter": true,
+		"layout": {
+			"allowSwitching": true
+		}
+	},
+	"usesContext": ["postId", "postType", "queryId"],
+	"editorScript": "file:./index.js",
+	"style": "file:./style.css"
+}

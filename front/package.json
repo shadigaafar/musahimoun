@@ -1,0 +1,48 @@
+{
+	"name": "musahimoun",
+	"version": "1.0.0",
+	"description": "Blocks for musahimoun",
+	"scripts": {
+		"check-engines": "wp-scripts check-engines",
+		"check-licenses": "wp-scripts check-licenses",
+		"format": "wp-scripts format",
+		"lint:css": "wp-scripts lint-style",
+		"lint:js": "wp-scripts lint-js",
+		"lint:md:docs": "wp-scripts lint-md-docs",
+		"lint:md:js": "wp-scripts lint-md-js",
+		"lint:pkg-json": "wp-scripts lint-pkg-json",
+		"packages-update": "wp-scripts packages-update",
+		"dev": "wp-scripts start",
+		"test:e2e": "wp-scripts test-e2e",
+		"test:unit": "wp-scripts test-unit-js",
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "webpack-dev-server --open --config webpack.config.js",
+		"build": "webpack --watch --config webpack.config.js"
+	},
+	"author": "Shadi Gaafar",
+	"license": "ISC",
+	"devDependencies": {
+		"@types/node": "^22.4.0",
+		"@types/react": "^18.3.3",
+		"@types/react-dom": "^18.3.0",
+		"@wordpress/data": "^10.5.0",
+		"@wordpress/date": "^5.5.0",
+		"@wordpress/dom-ready": "^4.5.0",
+		"@wordpress/icons": "^10.5.0",
+		"@wordpress/scripts": "^28.5.0",
+		"classnames": "^2.5.1",
+		"copy-webpack-plugin": "^12.0.2",
+		"file-loader": "^6.2.0",
+		"image-webpack-loader": "^8.1.0",
+		"npm-watch": "^0.13.0",
+		"postcss": "^8.4.41",
+		"postcss-nested": "^6.2.0",
+		"typescript": "^5.5.4"
+	},
+	"dependencies": {
+		"@wordpress/data-controls": "^4.5.0",
+		"immer": "^10.1.1",
+		"react-icons": "^5.3.0",
+		"react-social-icons": "^6.18.0"
+	}
+}

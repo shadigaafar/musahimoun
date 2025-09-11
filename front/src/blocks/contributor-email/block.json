@@ -1,0 +1,31 @@
+{
+	"apiVersion": 3,
+	"name": "mshmn/contributor-email",
+	"title": "Musahimoun: Contributor Email",
+	"category": "musahimoun",
+	"description": "Displays the author's email address.",
+	"textdomain": "mousahimoun",
+	"keywords": ["contributor email", "email"],
+	"usesContext": ["postType", "postId", "contributor"],
+	"supports": {
+		"html": false,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"color": {
+			"gradients": true,
+			"link": true,
+			"__experimentalDefaultControls": {
+				"background": true,
+				"text": true,
+				"link": true
+			}
+		},
+		"typography": {
+			"fontSize": true
+		}
+	},
+	"editorScript": "file:./index.js",
+	"style": "file:./style.css"
+}

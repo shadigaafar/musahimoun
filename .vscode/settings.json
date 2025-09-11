@@ -1,0 +1,21 @@
+{
+	
+	"[php]": {
+		"editor.formatOnSave": true,
+		"editor.defaultFormatter": "persoderlind.vscode-phpcbf"
+	},
+	"[javascript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"editor.formatOnSave": true
+	},
+	"[typescript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"editor.formatOnSave": true
+	},
+	"[typescriptreact]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"files.eol": "\n",
+	"cSpell.words": [],
+	"git.ignoreLimitWarning": true
+}
