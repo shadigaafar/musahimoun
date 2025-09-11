@@ -29,6 +29,7 @@ if ( defined( 'ABSPATH' ) ) :
 	define( 'MSHMN_SUPPORTED_AUTHOR_ARCHIVE', 'mshmn_author_archive_post_types' );
 	define( 'MSHMN_ROLE_ASSINGMENTS_META', 'mshmn_role_assignments' );
 	define( 'MSHMN_POST_CONTRIBUTORS_META', 'mshmn_all_post_contributor_ids' );
+	define( 'MSHMN_POST_AUTHORS_META', 'mshmn_all_post_author_ids' );
 	define( 'MSHMN_MAIN_MENU_SLUG_NAME', 'mshmn' );
 
 
