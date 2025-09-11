@@ -172,7 +172,8 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 		 */
 		public function filter_posts_by_guests( $posts, $query ) {
 
-			if ( ! is_admin() && $query->is_main_query() ) {
+			if ( ! is_admin() && $query->is_main_query() && is_author() ) {
+
 				$author_nicename          = $query->query_vars['author_name'];
 				$post_type_author_archive = get_option( MSHMN_SUPPORTED_AUTHOR_ARCHIVE, array() );
 
@@ -181,8 +182,6 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 				if ( $query->is_author() && $this->is_guest( 'nicename', $author_nicename ) ) {
 
 					$this->contributor = get_guests( array( 'nicename' => $author_nicename ) )[0];
-
-					$query->set( 'post_type', $post_type_author_archive );
 
 					$query->set(
 						'meta_query',
