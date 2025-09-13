@@ -1,375 +1,278 @@
 <?php
 /**
- * Role_Service class definition
+ * Role and Role_Service Refactored.
  *
- * @since 1.0
  * @package Musahimoun
  */
 
 namespace MSHMN;
 
+use Exception;
+use wpdb;
+
 use function MSHMN\Functions\get_type_specifiers;
 
-if ( ! class_exists( __NAMESPACE__ . '\\Role_Service' ) ) :
+if ( ! class_exists( __NAMESPACE__ . '\\Role' ) || ! class_exists( __NAMESPACE__ . '\\Role_Service' ) || ! class_exists( __NAMESPACE__ . '\\Concrete_Role' ) ) :
+
+
 	/**
-	 * Class used to implement Role_Service object
+	 * Abstract Role class (data only).
+	 */
+	abstract class Role {
+		public int $id;
+		public string $name;
+		public string $prefix;
+		public bool $avatar_visibility;
+		public int $icon;
+		public string $nicename;
+
+		public function __construct(
+			int $id,
+			string $name,
+			string $prefix,
+			bool $avatar_visibility,
+			int $icon,
+			string $nicename
+		) {
+			$this->id                = $id;
+			$this->name              = $name;
+			$this->prefix            = $prefix;
+			$this->avatar_visibility = $avatar_visibility;
+			$this->icon              = $icon;
+			$this->nicename          = $nicename;
+		}
+
+		abstract public function get_permissions(): array;
+	}
+
+	/**
+	 * Concrete Role Example.
+	 */
+	class Concrete_Role extends Role {
+		public function get_permissions(): array {
+			return array( 'read' );
+		}
+	}
+
+	/**
+	 * Service / Repository class for Roles.
 	 */
 	class Role_Service {
-		/**
-		 * Role Table Name.
-		 *
-		 * @since 1.0
-		 * @var string
-		 */
-		public $table_name;
+		private wpdb $db;
+		private string $table_name;
+		private array $results        = array();
+		private string $output_format = OBJECT;
+		private string $query         = '';
 
-		/**
-		 * Query vars, after parsing
-		 *
-		 * @since 1.0
-		 * @var array
-		 */
-		public $query_vars = array();
-
-		/**
-		 * The SQL query used to fetch matching roles.
-		 *
-		 * @since 1.0
-		 * @var string
-		 */
-		public $request;
-
-		/**
-		 * Sql clause
-		 *
-		 * @var string
-		 */
-		public $query_field;
-
-		/**
-		 * Sql clause
-		 *
-		 * @var string
-		 */
-		public $query_from;
-
-		/**
-		 * Sql clause
-		 *
-		 * @var string
-		 */
-		public $query_where;
-
-		/**
-		 * Sql clause
-		 *
-		 * @var string
-		 */
-		public $query_orderby;
-
-		/**
-		 * Sql clause
-		 *
-		 * @var string|null
-		 */
-		public $query_limit;
-
-		/**
-		 * Query Results
-		 *
-		 * @var array|null
-		 */
-		private $results;
-
-		/**
-		 * Format for data.
-		 *
-		 * @var array|null
-		 */
-		private $format;
-
-		/**
-		 * Constructor
-		 *
-		 * @param null|array $query Optional. The query variables.
-		 * @param string     $output Optional. Any of ARRAY_A | ARRAY_N | OBJECT | OBJECT_K constants.
-		 */
-		public function __construct( $query = null, $output = OBJECT ) {
-			$this->set_table_name();
-			$this->prepare_query( $query );
-			$this->query( $output );
+		public function __construct() {
+			global $wpdb;
+			$this->db         = $wpdb;
+			$this->table_name = $this->db->prefix . 'mshmn_roles';
 		}
 
 		/**
-		 * Fills in missing query variables with default values.
+		 * Fetch roles from DB.
 		 *
-		 * @since 1.0
-		 * @param array $args Query vars, as passed to `Role_Service`.
-		 * @return array Complete query variables with defaults.
+		 * @param array  $args Query parameters.
+		 * @param string $output Any of ARRAY_A | ARRAY_N | OBJECT | OBJECT_K.
+		 * @return Role[]
 		 */
-		public static function fill_query_vars( $args ) {
+		public function get_roles( array $args = array(), string $output = OBJECT ): array {
+			$this->output_format = $output;
+
+			$args = $this->fill_query_vars( $args );
+
+			$query  = $this->build_select_clause( $args );
+			$query .= $this->db->prepare( ' FROM %i WHERE 1=1', $this->table_name );
+			$query .= $this->build_where_clause( $args );
+			$query .= $this->build_orderby_clause( $args );
+			$query .= $this->build_limit_clause( $args );
+
+			$this->query = $query;
+
+			$rows = $this->db->get_results( $query, $output );
+			if ( empty( $rows ) ) {
+				return array();
+			}
+
+			if ( isset( $args['fields'] ) && count( $args['fields'] ) === 1 && in_array( $args['fields'][0], array( 'id', 'name', 'prefix', 'nicename', 'avatar_visibility', 'icon' ), true ) ) {
+				return $rows;
+			}
+			return array_map( fn( $row ) => $this->map_row_to_role( (array) $row ), $rows );
+		}
+
+		/**
+		 * Fill default query args.
+		 */
+		private function fill_query_vars( array $args ): array {
 			$defaults = array(
-				'field'    => '',
+				'fields'   => array(),
 				'prefix'   => '',
 				'nicename' => '',
 				'include'  => array(),
 				'exclude'  => array(),
-				'search'   => '',  // Added search parameter.
-				'paged'    => null, // Page number (optional).
-				'per_page' => null, // Number of items per page (optional).
+				'search'   => '',
+				'paged'    => 1,
+				'per_page' => 0,
 			);
+
 			return wp_parse_args( $args, $defaults );
 		}
 
-		/**
-		 * Prepares the query variables.
-		 *
-		 * @param array $query Optional. Array of Query parameters.
-		 */
-		public function prepare_query( $query = array() ) {
-			global $wpdb;
-			if ( empty( $this->query_vars ) || ! empty( $query ) ) {
-				$this->query_limit = null;
-				$this->query_vars  = $this->fill_query_vars( $query );
+		private function build_select_clause( array $args ): string {
+			if ( empty( $args['fields'] ) ) {
+				return 'SELECT *';
 			}
 
-			$qv =& $this->query_vars;
-			$qv = $this->fill_query_vars( $qv );
-
-			$allowed_fields    = array( 'id', 'nicename', 'prefix', 'avatar_visibility' );
-			$this->query_field = '*';
-
-			if ( in_array( $qv['field'], $allowed_fields, true ) ) {
-				$field             = 'id' === $qv['field'] ? 'id' : sanitize_key( $qv['field'] );
-				$this->query_field = "$this->table_name.$field";
+			$valid_fields = array( 'id', 'name', 'prefix', 'nicename', 'avatar_visibility', 'icon' );
+			$fields       = array_filter( $args['fields'], fn( $field ) => in_array( $field, $valid_fields, true ) );
+			if ( empty( $fields ) ) {
+				return 'SELECT *';
 			}
 
-			$this->query_from    = $wpdb->prepare( 'FROM %i', $this->table_name );
-			$this->query_where   = 'WHERE 1=1';
-			$this->query_orderby = 'ORDER BY id ASC';
+			$placeholders = implode( ',', array_fill( 0, count( $fields ), '%i' ) );
 
-			if ( isset( $qv['prefix'] ) && ! empty( $qv['prefix'] ) ) {
-				$prefix             = $qv['prefix'];
-				$this->query_where .= $wpdb->prepare( ' AND prefix = %s', $prefix );
+			return $this->db->prepare( "SELECT $placeholders", ...$args['fields'] );
+		}
+
+		private function build_where_clause( array $args ): string {
+			$clauses = array();
+
+			if ( ! empty( $args['prefix'] ) ) {
+				$clauses[] = $this->db->prepare( 'prefix = %s', $args['prefix'] );
 			}
 
-			if ( isset( $qv['nicename'] ) && ! empty( $qv['nicename'] ) ) {
-				$nicename           = $qv['nicename'];
-				$this->query_where .= $wpdb->prepare( ' AND nicename = %s', $nicename );
-			}
-			if ( isset( $qv['search'] ) && ! empty( $qv['search'] ) ) {
-				$search_term        = '%' . $wpdb->esc_like( $qv['search'] ) . '%';
-				$this->query_where .= $wpdb->prepare( ' AND prefix LIKE %s', $search_term );
+			if ( ! empty( $args['nicename'] ) ) {
+				$clauses[] = $this->db->prepare( 'nicename = %s', $args['nicename'] );
 			}
 
-			if ( ! empty( $qv['include'] ) ) {
-				$include         = wp_parse_id_list( $qv['include'] );
-				$id_placeholders = implode( ', ', array_fill( 0, count( $include ), '%d' ) );
-				$prepare_values  = array_merge( array( 'id' ), $include );
-
-                //phpcs:ignore.
-				$this->query_where .= $wpdb->prepare( " AND %i IN ($id_placeholders)", $prepare_values );
-
-			} elseif ( ! empty( $qv['exclude'] ) ) {
-				$exclude         = wp_parse_id_list( $qv['exclude'] );
-				$id_placeholders = implode( ', ', array_fill( 0, count( $exclude ), '%d' ) );
-				$prepare_values  = array_merge( array( 'id' ), $qv['exclude'] );
-                //phpcs:ignore.
-				$this->query_where .= $wpdb->prepare( " AND %i NOT IN ($id_placeholders)", $prepare_values );
+			if ( ! empty( $args['search'] ) ) {
+				$search    = '%' . $this->db->esc_like( $args['search'] ) . '%';
+				$clauses[] = $this->db->prepare( 'prefix LIKE %s', $search );
 			}
 
-			// Handle Pagination if pagination parameters are set.
-			$paged    = intval( $qv['paged'] );
-			$per_page = intval( $qv['per_page'] );
-
-			if ( ! empty( $paged ) && ! empty( $per_page ) ) {
-				if ( $paged < 1 ) {
-					$paged = 1;
-				}
-				$offset            = ( $paged - 1 ) * $per_page;
-				$this->query_limit = $wpdb->prepare( 'LIMIT %d OFFSET %d', $per_page, $offset );
+			if ( ! empty( $args['include'] ) ) {
+				$ids          = wp_parse_id_list( $args['include'] );
+				$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+				$clauses[]    = $this->db->prepare( "id IN ($placeholders)", ...$ids );
+			} elseif ( ! empty( $args['exclude'] ) ) {
+				$ids          = wp_parse_id_list( $args['exclude'] );
+				$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+				$clauses[]    = $this->db->prepare( "id NOT IN ($placeholders)", ...$ids );
 			}
+
+			return ! empty( $clauses ) ? ' AND ' . implode( ' AND ', $clauses ) : '';
+		}
+
+		private function build_orderby_clause( array $args ): string {
+			return ' ORDER BY id ASC';
+		}
+
+		private function build_limit_clause( array $args ): string {
+			$paged    = max( 1, (int) $args['paged'] );
+			$per_page = max( 0, (int) $args['per_page'] );
+
+			if ( $per_page > 0 ) {
+				$offset = ( $paged - 1 ) * $per_page;
+				return $this->db->prepare( ' LIMIT %d OFFSET %d', $per_page, $offset );
+			}
+
+			return '';
 		}
 
 		/**
-		 * Executes the query, with the current variables.
+		 * Map DB row to Role object.
 		 *
-		 * @since 1.0
-		 * @param string $output Optional. Any of ARRAY_A | ARRAY_N | OBJECT | OBJECT_K constants.
-		 * @global wpdb $wpdb WordPress database abstraction object.
+		 * @param array $row Database row.
+		 * @return Role Mapped Role object.
 		 */
-		public function query( $output ) {
-			global $wpdb;
-
-			$qv =& $this->query_vars;
-
-			if ( null === $this->results ) {
-					// Santitized earlier by $wpdb->prepare.
-					$this->request = "SELECT $this->query_field  $this->query_from $this->query_where $this->query_orderby $this->query_limit";
-
-				if ( isset( $qv['field'] ) && ! empty( $qv['field'] ) && '*' !== $qv['field'] ) {
-					// Santitized earlier by $wpdb->prepare.
-                    //phpcs:ignore.
-					$this->results = $wpdb->get_col( $this->request );
-				} else {
-					// Santitized earlier by $wpdb->prepare.
-                    //phpcs:ignore.
-					$this->results = $wpdb->get_results( $this->request, $output );
-				}
-			}
-
-			if ( ! $this->results ) {
-				$this->results = null;
-			}
-		}
-
-		/**
-		 * Returns the list of roles.
-		 *
-		 * @since 1.0
-		 * @return array
-		 */
-		public function get_results() {
-			return $this->results;
-		}
-
-		/**
-		 * Set the table name.
-		 */
-		private function set_table_name() {
-			global $wpdb;
-			$this->table_name = $wpdb->prefix . 'mshmn_roles';
-		}
-
-		/**
-		 * Prepare data for insert/update.
-		 *
-		 * @param array $data Associative array of column names and values.
-		 */
-		private function prepare_data( $data ) {
-			$name     = isset( $data['name'] ) ? $data['name'] : '';
-			$nicename = $this->generate_nicename( $name );
-			$icon     = $data['icon'] ?? null;
-			$prepared = array(
-				'name'     => $name,
-				'nicename' => $nicename,
-				'prefix'   => isset( $data['prefix'] ) ? trim( $data['prefix'] ) : '',
+		private function map_row_to_role( array $row ): Role {
+			return new Concrete_Role(
+				(int) $row['id'],
+				$row['name'] ?? '',
+				$row['prefix'] ?? '',
+				(bool) ( $row['avatar_visibility'] ?? false ),
+				(int) ( $row['icon'] ?? null ),
+				$row['nicename'] ?? ''
 			);
-
-			if ( isset( $icon ) && ! empty( $icon ) && is_integer( $icon ) ) {
-				$prepared['icon'] = intval( $icon );
-			}
-
-			if ( isset( $data['avatar_visibility'] ) ) {
-				$prepared['avatar_visibility'] = intval( $data['avatar_visibility'] );
-			}
-			$this->format = get_type_specifiers( $prepared );
-
-			return $prepared;
 		}
 
 		/**
 		 * Insert a new role.
 		 *
-		 * @param array           $data Associative array of column names and values.
-		 * @param string[]|string $format Optional. An array of formats to be mapped to each of the values in $data. If string, that format will be used for all of the values in $data. A format is one of '%d', '%f', '%s' (integer, float, string). If omitted, all values in $data will be treated as strings unless otherwise specified in wpdb::$field_types. Default null.
-		 * @return int|false The id of inserted Role, or false on failure.
+		 * @param array $data Data to insert.
+		 * @return int Inserted role ID.
 		 */
-		public function insert( $data, $format = null ) {
-			global $wpdb;
-			//phpcs:ignore.
-			$prepared_data = $this->prepare_data( $data );
-			$inserted      = $wpdb->insert( $this->table_name, $prepared_data, $format ?? $this->format );
-			if ( $inserted ) {
-				return $wpdb->insert_id;
+		public function insert( array $data ): int {
+			$prepared = $this->prepare_data( $data );
+			$inserted = $this->db->insert( $this->table_name, $prepared, get_type_specifiers( $prepared ) );
+			if ( false === $inserted ) {
+				throw new Exception( 'Failed to insert role.' );
 			}
-			return false;
+			return (int) $this->db->insert_id;
 		}
 
 		/**
 		 * Update an existing role.
 		 *
-		 * @param array           $data Associative array of column names and values.
-		 * @param array           $where Associative array of WHERE conditions.
-		 * @param string[]|string $format Optional. An array of formats to be mapped to each of the values in $data. If string, that format will be used for all of the values in $data. A format is one of '%d', '%f', '%s' (integer, float, string). If omitted, all values in $data will be treated as strings unless otherwise specified in wpdb::$field_types. Default null.
-		 * @return int|false The number of rows updated, or false on failure.
+		 * @param array                     $data Data to update.
+		 * @param array<key-of-Role, mixed> $where Conditions to identify the role to update.
+		 * @return string Updated role nicename.
 		 */
-		public function update( $data, $where, $format = null ) {
-			global $wpdb;
-			//phpcs:ignore.
-			return $wpdb->update( $this->table_name, $data, $where, $format ?? $this->format );
-		}
-
-		/**
-		 * Delete a role.
-		 *
-		 * @param array           $where Associative array of WHERE conditions.
-		 * @param string[]|string $where_format Optional. An array of formats to be mapped to each of the values in $data. If string, that format will be used for all of the values in $data. A format is one of '%d', '%f', '%s' (integer, float, string). If omitted, all values in $data will be treated as strings unless otherwise specified in wpdb::$field_types. Default null.
-		 * @return int|false The number of rows deleted, or false on failure.
-		 */
-		public function delete( $where, $where_format = null ) {
-			global $wpdb;
-			$id = isset( $where['id'] ) ? (int) $where['id'] : 0;
-
-			if ( 1 === $id ) { // prvent delete default role.
-				return false;
-			} else {
-				//phpcs:ignore.
-				return $wpdb->delete( $this->table_name, $where, $where_format );
+		public function update( array $data, array $where ): string {
+			$updated = $this->db->update( $this->table_name, $data, $where, get_type_specifiers( $data ) );
+			if ( false === $updated ) {
+				throw new Exception( 'Failed to update role.' );
 			}
+			return $updated;
 		}
 
-		/**
-		 * Check if role nicename exists in wp_users table and mshmn_roles.
-		 *
-		 * @param string $nicename the role nicename to check.
-		 * @return bool True if the nicename exists, false otherwise.
-		 */
-		public function nicename_exists( $nicename ) {
-			global $wpdb;
-			// Check in mshmn_roles table.
-            //phpcs:ignore.
-			$nicename_exists_in_role = $wpdb->get_row(
-				$wpdb->prepare(
-					'SELECT nicename FROM %i WHERE nicename = %s',
-					$this->table_name,
-					$nicename
-				)
+		public function delete( array $where ): int {
+			if ( ( $where['id'] ?? 0 ) === 1 ) {
+				return 0; // prevent deleting default role
+			}
+			$deleted = $this->db->delete( $this->table_name, $where );
+			if ( false === $deleted ) {
+				throw new Exception( 'Failed to delete role.' );
+			}
+			return $deleted;
+		}
+
+		private function prepare_data( array $data ): array {
+			$name     = trim( $data['name'] ?? '' );
+			$nicename = $this->generate_nicename( $name );
+
+			return array(
+				'name'              => $name,
+				'nicename'          => $nicename,
+				'prefix'            => trim( $data['prefix'] ?? '' ),
+				'avatar_visibility' => isset( $data['avatar_visibility'] ) ? (bool) $data['avatar_visibility'] : false,
+				'icon'              => isset( $data['icon'] ) ? (int) $data['icon'] : null,
 			);
-
-			if ( ! empty( $nicename_exists_in_role ) ) {
-				return true;
-			} else {
-				return false;
-			}
 		}
 
-		/**
-		 * Generate unique nicename for role.
-		 *
-		 * @param string $name The name.
-		 * @throws \Exception Error if it generates finite loop.
-		 * @return string The generated nicename
-		 */
-		private function generate_nicename( $name ) {
-			$name                = isset( $name ) && ! empty( $name ) ? $name : 'k-role-name';
-			$trimed_name         = sanitize_title( trim( $name ) );
-			$name_lower_case     = mb_strtolower( $trimed_name );
-			$name_spaces_to_dash = mb_ereg_replace( ' ', '-', $name_lower_case );
-			$nicename            = rawurldecode( $name_spaces_to_dash );
-			$i                   = 1;
+		private function generate_nicename( string $name ): string {
+			$name     = $name ?: 'role-name';
+			$nicename = sanitize_title( $name );
+			$original = $nicename;
+			$i        = 1;
 
 			while ( $this->nicename_exists( $nicename ) ) {
-				++$i;
-				$nicename = $nicename . '-' . $i;
+				$nicename = $original . '-' . $i++;
 				if ( $i > 2000 ) {
-					if ( WP_DEBUG ) {
-						throw new \Exception( 'generate_nicename created infinite loop' );
-					}
-					break;
+					throw new Exception( 'generate_nicename created infinite loop' );
 				}
 			}
+
 			return $nicename;
 		}
+
+		private function nicename_exists( string $nicename ): bool {
+			$row = $this->db->get_var(
+				$this->db->prepare( "SELECT nicename FROM {$this->table_name} WHERE nicename = %s", $nicename )
+			);
+			return ! empty( $row );
+		}
 	}
+
 endif;
