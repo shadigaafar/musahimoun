@@ -16,7 +16,7 @@ function enqueue_scripts() {
 	$asset = include __DIR__ . '/index.asset.php';
 
 	wp_register_script( 'mshmn-meta-bock-script', plugin_dir_url( __FILE__ ) . 'index.js', $asset['dependencies'], $asset['version'], true );
-	wp_enqueue_script( 'mshmn-meta-bock-script');
+	wp_enqueue_script( 'mshmn-meta-bock-script' );
 	wp_enqueue_style( 'musahimoun-meta-box-style', plugin_dir_url( __FILE__ ) . 'style.css', array(), $asset['version'], 'all' );
 }
 add_action( 'wp_enqueue_editor', __NAMESPACE__ . '\\enqueue_scripts', 1 );
@@ -35,10 +35,30 @@ function author_block_register_post_meta() {
 				$post_type,
 				MSHMN_POST_CONTRIBUTORS_META,
 				array(
-					'show_in_rest' => true,
-					'single'       => true,
-					'type'         => 'string',
-					'default'      => '',
+					'show_in_rest'      => true,
+					'single'            => true,
+					'type'              => 'string',
+					'default'           => '',
+					'auth_callback'     => function () {
+						return current_user_can( 'edit_posts' );
+					},
+					'sanitize_callback' => 'sanitize_text_field',
+				)
+			);
+
+			register_post_meta(
+				$post_type,
+				MSHMN_POST_AUTHORS_META,
+				array(
+					'show_in_rest'      => true,
+					'single'            => true,
+					'type'              => 'string',
+					'default'           => '',
+					'auth_callback'     => function () {
+						return current_user_can( 'edit_posts' );
+					},
+					'sanitize_callback' => 'sanitize_text_field',
+					'show_in_rest'      => true,
 				)
 			);
 		}
