@@ -77,7 +77,7 @@ add_action(
 			}
 
 			$args   = is_array( $ids ) ? array( 'include' => $ids ) : array();
-			$_roles = $role_service->get_results( $args );
+			$_roles = $role_service->get_roles( $args );
 
 			foreach ( $_roles as $role ) {
 				$role_with_numeric_id = array_merge(
@@ -119,7 +119,7 @@ add_action(
 
 				if ( isset( $parameter['id'] ) && ! empty( $parameter['id'] ) ) {
 					// Update existing role.
-					$existing_role = $role_service->get_results( array( 'include' => array( $parameter['id'] ) ) );
+					$existing_role = $role_service->get_roles( array( 'include' => array( $parameter['id'] ) ) );
 					if ( ! empty( $existing_role ) ) {
 						$update = $role_service->update( $data, array( 'id' => $parameter['id'] ) );
 						if ( false !== $update ) {
