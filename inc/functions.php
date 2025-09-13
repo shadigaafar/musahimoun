@@ -69,7 +69,7 @@ function get_role_assingments(): array {
 			continue;
 		}
 
-		$roles        = new \MSHMN\Role_Service( array( 'include' => $role_assignment['role'] ), ARRAY_A );
+		$roles        = new \MSHMN\Role_Service();
 		$contributors = array();
 
 		if ( ! empty( $role_assignment['contributors'] ) ) {
@@ -78,7 +78,7 @@ function get_role_assingments(): array {
 			$contributors       = $contributors_query->get_results( ARRAY_A );
 		}
 
-		$role = $roles->get_results()[0] ?? array();
+		$role = $roles->get_roles( array( 'include' => array( $role_assignment['role'] ) ) )[0] ?? array();
 		$role_assignments_with_entites[ $key ]['role'] = array_merge(
 			$role,
 			array(
@@ -194,6 +194,7 @@ function get_type_specifiers( array $input_array ): array {
 
 /**
  * Check if nicename is for a user.
+ *
  * @param string $nicename The nicename to check.
  * @return bool True if nicename is for a user, false otherwise.
  */
@@ -209,10 +210,117 @@ function is_nicename_for_user( $nicename ) {
  * @return object|null The role object if found, null otherwise.
  */
 function get_role_by_nicename( $nicename ) {
-	$role_service = new \MSHMN\Role_Service( array( 'nicename' => $nicename ) );
-	$roles        = $role_service->get_results();
+	$role_service = new \MSHMN\Role_Service();
+	$roles        = $role_service->get_roles( array( 'nicename' => $nicename ) );
 	if ( ! empty( $roles ) ) {
 		return $roles[0];
 	}
 	return null;
+}
+
+
+/**
+ * Update an existing role and handle default role logic.
+ *
+ * @param array<key-of-\MSHMN\Role_Service\Role, mixed> $data Data to update. ID or nicename is required.
+ * @param array                                         $where Conditions to identify the role to update.
+ * @param bool|null                                     $set_as_default Whether to set this role as the default role.
+ * @template T of \MSHMN\Role_Service\Role
+ * @return array{data: T|null, message: string, set_as_default: bool}.
+ */
+function update_role( array $data, ?bool $set_as_default = false ): array {
+	if ( ( ! isset( $data['id'] ) || empty( $data['id'] ) ) && ( ! isset( $data['nicename'] ) || empty( $data['nicename'] ) ) ) {
+		return array(
+			'data'           => null,
+			'message'        => '<div class="error"><p>' . esc_html__( 'Role ID or nicname is required for update.', 'musahimoun' ) . '</p></div>',
+			'set_as_default' => $set_as_default,
+		);
+	}
+
+	$is_id = isset( $data['id'] ) && ! empty( $data['id'] ) && is_numeric( $data['id'] );
+
+	$where = $is_id ? array( 'id' => $data['id'] ) : array( 'nicename' => $data['nicename'] );
+
+	$role_service = new \MSHMN\Role_Service();
+	$updated      = $role_service->update( $data, $where );
+
+	$updated_role = null;
+
+	if ( false !== $updated ) {
+		$args         = $is_id ? array( 'include' => array( $data['id'] ) ) : array( 'nicename' => $data['nicename'] );
+		$updated_role = $role_service->get_roles( $args )[0] ?? null;
+		$message      = '<div class="updated"><p>' . esc_html__( 'Role updated successfully.', 'musahimoun' ) . '</p></div>';
+		if ( $set_as_default ) {
+			$prev_default_role_id = get_option( MSHMN_DEFAULT_ROLE_OPTION_KEY, -1 );
+			$default_role_id      = $updated_role->id ?? '';
+
+			if ( $prev_default_role_id === $default_role_id ) {
+				return array(
+					'data'           => $updated_role,
+					'message'        => $message,
+					'set_as_default' => $set_as_default,
+				);
+			}
+
+			if ( ! empty( $default_role_id ) ) {
+				$success = update_option( MSHMN_DEFAULT_ROLE_OPTION_KEY, $default_role_id );
+
+				if ( $success ) {
+					$message .= '<div class="updated"><p>' . esc_html__( 'Default role updated.', 'musahimoun' ) . '</p></div>';
+				} else {
+					$message .= '<div class="error"><p>' . esc_html__( 'Could not update default role. Please try again.', 'musahimoun' ) . '</p></div>';
+				}
+			} else {
+				$message .= '<div class="error"><p>' . esc_html__( 'Could not update default role. Role not found.', 'musahimoun' ) . '</p></div>';
+			}
+		}
+		do_action( 'mshmn_after_role_updated', $updated_role, $set_as_default );
+	} else {
+		$message = '<div class="error"><p>' . esc_html__( 'Error updating role. Please try again.', 'musahimoun' ) . '</p></div>';
+	}
+	return array(
+		'data'           => $updated_role,
+		'message'        => $message,
+		'set_as_default' => $set_as_default,
+	);
+}
+
+/**
+ * Insert a new role and handle default role logic.
+ *
+ * @param array<key-of-\MSHMN\Role_Service\Role, mixed> $data Data to insert.
+ * @param bool                                          $set_as_default Whether to set this role as the default role.
+ * @template T of \MSHMN\Role_Service\Role
+ * @return array{data: T|null, message: string, set_as_default: bool}.
+ */
+function insert_role( $data, $set_as_default ): array {
+	$role_service = new \MSHMN\Role_Service();
+	$role_id      = $role_service->insert( $data );
+
+	$inserted_role = null;
+	if ( $role_id ) {
+		$inserted_role = $role_service->get_roles( array( 'include' => array( $role_id ) ) )[0] ?? null;
+		$message       = '<div class="updated"><p>' . esc_html__( 'Role added successfully.', 'musahimoun' ) . '</p></div>';
+		if ( $set_as_default ) {
+			$default_role_id = $inserted_role->id ?? '';
+			if ( ! empty( $default_role_id ) ) {
+				$success = update_option( MSHMN_DEFAULT_ROLE_OPTION_KEY, $default_role_id );
+				if ( $success ) {
+					$message .= '<div class="updated"><p>' . esc_html__( 'Default role updated.', 'musahimoun' ) . '</p></div>';
+				} else {
+					$message .= '<div class="error"><p>' . esc_html__( 'Could not update default role. Please try again.', 'musahimoun' ) . '</p></div>';
+				}
+			} else {
+				$message .= '<div class="error"><p>' . esc_html__( 'Could not update default role. Role not found.', 'musahimoun' ) . '</p></div>';
+			}
+		}
+		do_action( 'mshmn_after_role_updated', $inserted_role, $set_as_default );
+	} else {
+		$message = '<div class="error"><p>' . esc_html__( 'Error adding role. Please try again.', 'musahimoun' ) . '</p></div>';
+	}
+	return array(
+		'data'           => $inserted_role,
+		'message'        => $message,
+		'set_as_default' => $set_as_default,
+	);
 }
