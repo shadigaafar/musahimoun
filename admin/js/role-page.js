@@ -16,6 +16,12 @@ jQuery(document).ready(function ($) {
 				success: function (response) {
 					$('#loading').hide(); // Hide loading spinner.
 					if (response.success) {
+						console.log(response.data);
+						$('#set_as_default_role').prop(
+							'checked',
+							response.data.set_as_default_role
+						);
+						// Populate form fields with the fetched data.
 						$('#name').val(response.data.name);
 						$('#prefix').val(response.data.prefix);
 						$('#avatar_visibility').prop(
@@ -46,6 +52,7 @@ jQuery(document).ready(function ($) {
 			});
 		} else {
 			// Clear form if adding new role.
+			$('#set_as_default_role').prop('checked', false);
 			$('#name').val('');
 			$('#prefix').val('');
 			$('#avatar_visibility').prop('checked', false);
