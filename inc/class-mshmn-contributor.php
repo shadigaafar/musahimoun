@@ -47,9 +47,12 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 				add_filter( 'manage_' . $post_type . '_posts_columns', array( $this, 'add_contributors_column' ), 12, 1 );
 			}
 			add_action( 'manage_posts_custom_column', array( $this, 'display_contributors_column' ), 12, 2 );
+			add_action( 'mshmn_after_role_updated', array( $this, 'add_default_role_assignement_meta' ), 12 );
 			add_action( 'mshmn_plugin_activated', array( $this, 'add_default_role_assignement_meta' ), 12 );
 			add_action( 'init', array( $this, 'remove_author_support' ), 12 );
 			add_action( 'init', array( $this, 'register_patterns' ), 12 );
+			add_action( 'init', array( $this, 'register_options' ), 12 );
+			add_action( 'init', array( $this, 'set_post_authors_meta' ), 20 );
 		}
 
 		/**
@@ -79,7 +82,6 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 
 				add_filter( 'posts_pre_query', array( $this, 'filter_posts_by_guests' ), 12, 2 );
 				add_action( 'document_title_parts', array( $this, 'filter_document_title' ), 12, 1 );
-
 			}
 		}
 
@@ -298,6 +300,18 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 		 */
 		public function add_default_role_assignement_meta() {
 
+			$default_role = get_option( MSHMN_DEFAULT_ROLE_OPTION_KEY, -1 );
+
+			if ( $default_role === -1 || empty( $default_role ) ) {
+				add_action(
+					'admin_notices',
+					function () {
+						echo '<div class="notice notice-warning"><p>' . esc_html__( 'Please set a default role for authors/main-contributors in musahimoun->role page. Default role is required for proper functionality.', 'musahimoun' ) . '</p></div>';
+					}
+				);
+				return;
+			}
+
 			$has_set_default = get_option( 'mshmn_has_set_default_role_assignment', false );
 
 			if ( false === $has_set_default ) {
@@ -323,14 +337,26 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 
 						if ( empty( $post_role_assignments[0]['role'] ) && empty( $post_contributors_stirng ) ) {
 
-							$role_query                               = new Role_Service(
-								array(
-									'include' => array( 1 ),
-									'field'   => 'id',
-								)
+							$role_query = new Role_Service();
+							$author     = get_post_field( 'post_author', $post_id );
+
+							if ( empty( $author ) || ! is_numeric( $author ) ) {
+								continue;
+							}
+
+							$post_role_assignments[0]['role'] = (
+								$role_query->get_roles(
+									array(
+										'include' => array( (int) $default_role ),
+										'fields'  => array( 'id' ),
+									)
+								)[0]->id ?? null
 							);
-							$author                                   = get_post_field( 'post_author', $post_id );
-							$post_role_assignments[0]['role']         = (int) $role_query->get_results()[0] ?? null;
+
+							if ( ! is_numeric( $post_role_assignments[0]['role'] ) ) {
+								error_log( 'Default role is not valid, please set a valid default role from musahimoun->role page' );
+							}
+
 							$post_role_assignments[0]['contributors'] = array( (int) $author );
 							update_post_meta( $post_id, MSHMN_POST_CONTRIBUTORS_META, (string) $author );
 							update_post_meta( $post_id, MSHMN_ROLE_ASSINGMENTS_META, $post_role_assignments );
@@ -395,6 +421,140 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 			}
 			return $title;
 		}
-	}
 
+		/**
+		 * Register post meta for authors.
+		 */
+		public function register_options() {
+
+			register_setting(
+				'options',
+				MSHMN_DEFAULT_ROLE_OPTION_KEY,
+				array(
+					'default'           => '',
+					'show_in_rest'      => array(
+						'schema' => array(
+							'type' => 'integer',
+						),
+					),
+					'sanitize_callback' => 'sanitize_text_field',
+					'auth_callback'     => function ( $request ) {
+						if ( $request->get_method() === 'GET' && current_user_can( 'edit_posts' ) ) {
+							return true; // any user editor can read
+						}
+						return current_user_can( 'manage_options' ); // only admins can update
+					},
+				)
+			);
+		}
+
+		/**
+		 * Todo: delete this method.
+		 * Mirgrating.
+		 * Set post authors names meta when plugin is initialized.
+		 */
+		public function set_post_authors_meta() {
+
+			$done = get_option( '_tmp_mshmn_set_post_authors_meta', false );
+
+			if ( ! empty( $done ) || true === $done ) {
+				return;
+			}
+
+			if ( empty( $this->selected_post_types ) ) {
+				return;
+			}
+
+			$default_role = get_option( MSHMN_DEFAULT_ROLE_OPTION_KEY, false );
+
+			if ( false === $default_role ) {
+				add_action(
+					'admin_notices',
+					function () {
+						echo '<div class="notice notice-warning"><p>' . esc_html__( 'Please set a default role for authors/main-contributors in musahimoun->role page. Default role is required for proper functionality.', 'musahimoun' ) . '</p></div>';
+					}
+				);
+				return;
+			}
+
+			$post_ids = get_posts(
+				array(
+					'post_type'      => $this->selected_post_types,
+					'posts_per_page' => -1,
+					'post_status'    => 'any',
+					'fields'         => 'ids',
+				)
+			);
+
+			if ( empty( $post_ids ) ) {
+				return;
+			}
+
+			foreach ( $post_ids as $post_id ) {
+
+				$post_role_assignments = is_array( get_post_meta( $post_id, MSHMN_ROLE_ASSINGMENTS_META, false ) ) ? get_post_meta( $post_id, MSHMN_ROLE_ASSINGMENTS_META, true ) : array();
+
+				if ( empty( $post_role_assignments ) ) {
+					return;
+				}
+				$author_ids = array_reduce(
+					$post_role_assignments,
+					function ( $carry, $role_assignment ) use ( $default_role ) {
+						if ( isset( $role_assignment['role'] ) && (int) $role_assignment['role'] === (int) $default_role ) {
+							if ( isset( $role_assignment['contributors'] ) && is_array( $role_assignment['contributors'] ) ) {
+								return array_merge( $carry, $role_assignment['contributors'] );
+							}
+						}
+						return $carry;
+					},
+					array()
+				);
+
+				if ( empty( $author_ids ) ) {
+					$author_id   = get_post_field( 'post_author', $post_id );
+					$author_name = array( get_the_author_meta( 'display_name', $author_id ) );
+					$post_type   = get_post_type( $post_id );
+
+					if ( in_array( $post_type, $this->selected_post_types, true ) ) {
+						$succuss = update_post_meta( $post_id, MSHMN_POST_AUTHORS_META, implode( ',', $author_name ) );
+						if ( true === $succuss ) {
+							add_action(
+								'admin_notices',
+								function () {
+									echo '<div class="updated"><p>Updated post meta.</p></div>';
+								}
+							);
+						}
+					}
+					continue;
+				}
+
+				$contributor_service = new Contributor_Service( array( 'include' => $author_ids ) );
+
+				$contributors = $contributor_service->get_results();
+
+				$author_names = isset( $contributors[0] ) && ! empty( $contributors[0]->name ) ? array_column( $contributors, 'name' ) : array();
+
+				if ( empty( $author_names ) ) {
+					return;
+				}
+
+				$post_type = get_post_type( $post_id );
+
+				if ( in_array( $post_type, $this->selected_post_types, true ) ) {
+					$succuss = update_post_meta( $post_id, MSHMN_POST_AUTHORS_META, implode( ',', $author_names ) );
+					if ( true === $succuss ) {
+						add_action(
+							'admin_notices',
+							function () {
+								echo '<div class="updated"><p>Updated post meta.</p></div>';
+							}
+						);
+					}
+				}
+			}
+
+			update_option( '_tmp_mshmn_set_post_authors_meta', true );
+		}
+	}
 endif;
