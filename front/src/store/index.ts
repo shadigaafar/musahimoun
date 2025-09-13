@@ -11,6 +11,10 @@ import { uniq, cloneDeep, isNumber, map, isEmpty, find, filter } from 'lodash';
 import { apiFetch, controls as wpControls } from '@wordpress/data-controls';
 import { APIFetchOptions } from '@wordpress/api-fetch';
 
+//@ts-ignore.
+const localizedData = window.mshmnStore || {};
+const { currentUserId } = localizedData;
+
 interface Role {
 	id: number;
 	name: string;
@@ -36,6 +40,7 @@ interface State {
 	roleAssignments: RoleAssignement[];
 	isLoading: boolean;
 	roles: Role[] | [];
+	author?: Contributor;
 }
 
 interface Contributor {
@@ -105,6 +110,10 @@ interface FetchRoleAssignmentsFailureAction {
 	error: any;
 }
 
+interface SetCurrentPostAuthor {
+	type: 'SET_CURRENT_POST_AUTHOR';
+	author: Contributor;
+}
 type Action =
 	| SetRoleAssignmentsAction
 	| SetRoles
@@ -115,7 +124,8 @@ type Action =
 	| RemoveContributorAction
 	| FetchRoleAssignmentsAction
 	| FetchRoleAssignmentsSuccessAction
-	| FetchRoleAssignmentsFailureAction;
+	| FetchRoleAssignmentsFailureAction
+	| SetCurrentPostAuthor;
 
 const ROLE_PATH = '/mshmn/v1/roles';
 const CONTRIBUTOR_PATH = '/mshmn/v1/contributors';
@@ -209,6 +219,12 @@ const actions = {
 		return {
 			type: 'REMOVE_CONTRIBUTOR',
 			contributorId,
+		};
+	},
+	setCurrentPostAuthor(contributor: Contributor): SetCurrentPostAuthor {
+		return {
+			type: 'SET_CURRENT_POST_AUTHOR',
+			author: contributor,
 		};
 	},
 };
@@ -305,6 +321,12 @@ const reducer = (state: State = DEFAULT_STATE, action: Action): State => {
 				...cloneDeep(state),
 				roleAssignments: ReupdatedRoleAssignments,
 			};
+		case 'SET_CURRENT_POST_AUTHOR':
+			const author = action.author;
+			return {
+				...cloneDeep(state),
+				author: author,
+			};
 		default:
 			return state;
 	}
@@ -317,6 +339,9 @@ const selectors = {
 	},
 	getRoles(state: State): Role[] {
 		return state.roles;
+	},
+	getCurrentPostAuthor(state: State): Contributor | undefined {
+		return state.author;
 	},
 };
 
@@ -389,6 +414,27 @@ const resolvers = {
 			return console.error(error);
 		}
 	},
+	*getCurrentPostAuthor(): Generator<
+		Action | { type: string; request: APIFetchOptions },
+		Action | void,
+		PostRecord<'edit'> | Contributor[]
+	> {
+		const params = new URLSearchParams(window.location.search);
+		const postId = params.get('post');
+
+		try {
+			const record = yield apiFetch({ path: `wp/v2/posts/${postId}` });
+			const authorId = record?.author ?? currentUserId ?? '';
+
+			const contributors = yield apiFetch({
+				path: `${CONTRIBUTOR_PATH}?ids=${authorId}`,
+			});
+			yield actions.setCurrentPostAuthor(contributors[0] ?? null);
+		} catch (error) {
+			return console.error(error);
+		}
+	},
+
 	*getRoles(): Generator<
 		Action | { type: string; request: APIFetchOptions },
 		Action | void,
