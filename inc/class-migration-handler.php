@@ -51,7 +51,7 @@ if ( ! class_exists( __NAMESPACE__ . '\\Migration_Handler' ) ) :
 		 */
 		private function get_default_role_id() {
 			$role_service = new \MSHMN\Role_Service();
-			$roles        = $role_service->get_results();
+			$roles        = $role_service->get_roles();
 			return ! empty( $roles ) ? $roles[0]->id : null;
 		}
 
