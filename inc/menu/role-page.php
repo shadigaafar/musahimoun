@@ -9,17 +9,30 @@ namespace MSHMN\Menu;
 
 use MSHMN\Role_Service;
 
+use function MSHMN\Functions\insert_role;
+use function MSHMN\Functions\update_role;
+
 /**
  * Render add/edit role page.
  */
 function render_role_add_edit_page_cb() {
 	if ( ! current_user_can( 'manage_options' ) ) {
+		add_action(
+			'admin_notices',
+			function () {
+				?>
+			<div class="notice notice-error">
+				<p><?php esc_html_e( 'You do not have sufficient permissions to access this page.', 'musahimoun' ); ?></p>
+			</div>
+				<?php
+			}
+		);
 		return;
 	}
 	enqeue_script();
-	// Initialize the Role_Service class.
+	// Initialize the Role_Service class and get all roles for selection.
 	$role_service = new Role_Service();
-	$roles        = $role_service->get_results() ?? array(); // Get all roles for selection.
+	$roles        = $role_service->get_roles() ?? array();
 
 	// Default values.
 	$name              = '';
@@ -27,13 +40,14 @@ function render_role_add_edit_page_cb() {
 	$avatar_visibility = false;
 	$icon              = '';
 
-	// Handle form submission for add/edit role.
-			if ( isset( $_POST['mshmn_role_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['mshmn_role_nonce'] ) ), 'mshmn_role' ) ) {
+	// Handle form submission.
+	if ( isset( $_POST['mshmn_role_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['mshmn_role_nonce'] ) ), 'mshmn_role' ) ) {
 		$id                = isset( $_POST['role_id'] ) ? intval( $_POST['role_id'] ) : 0;
 		$name              = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
 		$prefix            = isset( $_POST['prefix'] ) ? sanitize_text_field( wp_unslash( $_POST['prefix'] ) ) : '';
 		$avatar_visibility = isset( $_POST['avatar_visibility'] ) ? (bool) $_POST['avatar_visibility'] : false;
 		$icon              = isset( $_POST['icon'] ) && ! empty( $_POST['icon'] ) ? intval( $_POST['icon'] ) : null;
+		$set_as_default    = ! empty( $_POST['set_as_default_role'] );
 
 		$data = array(
 			'name'              => $name,
@@ -44,35 +58,27 @@ function render_role_add_edit_page_cb() {
 
 		if ( $id > 0 ) {
 			// Update existing role.
-			$where   = array( 'id' => $id );
-			$updated = $role_service->update( $data, $where );
-
-			if ( false !== $updated ) {
-				echo '<div class="updated"><p>' . esc_html__( 'Role updated successfully.', 'musahimoun' ) . '</p></div>';
-			} else {
-				echo '<div class="error"><p>' . esc_html__( 'Error updating role. Please try again.', 'musahimoun' ) . '</p></div>';
-			}
+			$data['id'] = $id;
+			$result     = update_role( $data, $set_as_default );
 		} else {
 			// Insert new role.
-			$inserted = $role_service->insert( $data );
-
-			if ( $inserted ) {
-				echo '<div class="updated"><p>' . esc_html__( 'Role added successfully.', 'musahimoun' ) . '</p></div>';
-				// Clear form data after successful submission.
-				$name              = '';
-				$prefix            = '';
-				$avatar_visibility = false;
-				$icon              = '';
-			} else {
-				echo '<div class="error"><p>' . esc_html__( 'Error adding role. Please try again.', 'musahimoun' ) . '</p></div>';
+			$result = insert_role( $data, $set_as_default );
+			if ( isset( $result['data']->id ) ) {
+				// Reset data after successful submission.
+				$id           = $_POST['role_id'] = $result['data']->id;
+				$role_service = new Role_Service();
+				$roles        = $role_service->get_roles() ?? array();
 			}
 		}
+		echo $result['message'];
 	}
 
 	// Enqueue the media uploader script.
 	wp_enqueue_media();
 
 	// Render the form.
+	// Get current default role
+	$current_default_role = get_option( MSHMN_DEFAULT_ROLE_OPTION_KEY, -1 );
 	?>
 	<div class="wrap">
 		<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
@@ -130,6 +136,16 @@ function render_role_add_edit_page_cb() {
 						</td>
 					</tr>
 					<tr>
+						<th scope="row"><?php esc_html_e( 'Set as default role', 'musahimoun' ); ?></th>
+						<td>
+							<label for="set_as_default_role">
+								<input name="set_as_default_role" type="checkbox" id="set_as_default_role" value="1" <?php checked( (int) $current_default_role === (int) ( $_POST['role_id'] ?? -1 ) ); ?>>
+								<?php esc_html_e( 'Check this box to make this role the default for new contributors and migrations.', 'musahimoun' ); ?>
+							</label>
+							<br/>
+						</td>
+					</tr>
+					<tr>
 						<th scope="row"><?php esc_html_e( 'Role Icon', 'musahimoun' ); ?></th>
 						<td>
 							<input type="hidden" name="icon" id="icon" value="<?php echo esc_attr( $icon ); ?>">
@@ -140,8 +156,8 @@ function render_role_add_edit_page_cb() {
 									<p><?php esc_html_e( 'No icon selected.', 'musahimoun' ); ?></p>
 								<?php endif; ?>
 							</div>
-									<button type="button" id="select-icon-button" class="button"><?php esc_html_e( 'Select Icon', 'musahimoun' ); ?></button>
-		<button type="button" id="remove-icon-button" class="button"><?php esc_html_e( 'Remove Icon', 'musahimoun' ); ?></button>
+								<button type="button" id="select-icon-button" class="button"><?php esc_html_e( 'Select Icon', 'musahimoun' ); ?></button>
+								<button type="button" id="remove-icon-button" class="button"><?php esc_html_e( 'Remove Icon', 'musahimoun' ); ?></button>
 							<br/>
 							<small><?php esc_html_e( 'Choose an icon for this role from the media library.', 'musahimoun' ); ?></small>
 						</td>
@@ -154,27 +170,28 @@ function render_role_add_edit_page_cb() {
 		<small>
 			<?php esc_html_e( 'Roles are useful for categorizing authors based on their specific functions within a post. For instance, if a post features an author and a separate fact checker, you can create distinct roles such as "Author" and "Fact Checker." When editing a post, you can then assign each person to their respective role, providing clarity on their contributions.', 'musahimoun' ); ?>
 		</small>
-	</div>
 	<?php
 }
 
 function enqeue_script() {
-	wp_register_script('mshmn-role-page-script', MSHMN_PLUGIN_URL . '/admin/js/role-page.js', array('jquery'), '1.1.1', true);
-	wp_enqueue_script('mshmn-role-page-script');
-	wp_localize_script( 'mshmn-role-page-script', 'mshmnRolePageTranslation',
-		array( 
-			'editNonce'                       => esc_html( wp_create_nonce( 'mshmn_role' ) ),
-			'alertOnNoIconSelected'           => esc_html__( 'No icon selected.', 'musahimoun' ),
-			'alertOnfailToLoadData'           => esc_html__( 'Failed to load role data.', 'musahimoun' ),
-			'alertOnErrorLoadingData'         => esc_html__( 'An error occurred while loading role data.', 'musahimoun' ),
-			'alertOnDelete'                   => esc_html__( 'You can not delete default role.', 'musahimoun' ),
-			'deleteConfirmation'              => esc_html__( 'Are you sure you want to delete this role?', 'musahimoun' ),
-			'deleteNonce'                     => esc_html( wp_create_nonce( 'delete_role' ) ),
-			'alertOnDeleteSuccess'            => esc_html__( 'Role deleted successfully.', 'musahimoun' ),
-			'alertOnDeleteFailed'             => esc_html__( 'Failed to delete role.', 'musahimoun' ),
-			'alertOnDeleteError'              => esc_html__( 'An error occurred while deleting the role.', 'musahimoun' ),
-			'alertOnNoRoleSelectedToDelete'   => esc_html__( 'No role selected to delete.', 'musahimoun' ),
-			'deleteButtonLabel'               => esc_html__( 'Delete Role', 'musahimoun' ),
+	wp_register_script( 'mshmn-role-page-script', MSHMN_PLUGIN_URL . '/admin/js/role-page.js', array( 'jquery' ), wp_rand(), true );
+	wp_enqueue_script( 'mshmn-role-page-script' );
+	wp_localize_script(
+		'mshmn-role-page-script',
+		'mshmnRolePageTranslation',
+		array(
+			'editNonce'                     => esc_html( wp_create_nonce( 'mshmn_role' ) ),
+			'alertOnNoIconSelected'         => esc_html__( 'No icon selected.', 'musahimoun' ),
+			'alertOnfailToLoadData'         => esc_html__( 'Failed to load role data.', 'musahimoun' ),
+			'alertOnErrorLoadingData'       => esc_html__( 'An error occurred while loading role data.', 'musahimoun' ),
+			'alertOnDelete'                 => esc_html__( 'You can not delete default role.', 'musahimoun' ),
+			'deleteConfirmation'            => esc_html__( 'Are you sure you want to delete this role?', 'musahimoun' ),
+			'deleteNonce'                   => esc_html( wp_create_nonce( 'delete_role' ) ),
+			'alertOnDeleteSuccess'          => esc_html__( 'Role deleted successfully.', 'musahimoun' ),
+			'alertOnDeleteFailed'           => esc_html__( 'Failed to delete role.', 'musahimoun' ),
+			'alertOnDeleteError'            => esc_html__( 'An error occurred while deleting the role.', 'musahimoun' ),
+			'alertOnNoRoleSelectedToDelete' => esc_html__( 'No role selected to delete.', 'musahimoun' ),
+			'deleteButtonLabel'             => esc_html__( 'Delete Role', 'musahimoun' ),
 		)
 	);
 }
@@ -183,7 +200,7 @@ function enqeue_script() {
  * AJAX callback to get role data.
  */
 function get_role_data_callback() {
-			if ( ! check_ajax_referer( 'mshmn_role', 'nonce', false ) ) {
+	if ( ! check_ajax_referer( 'mshmn_role', 'nonce', false ) ) {
 		wp_send_json_error( 'Invalid nonce.' );
 	}
 
@@ -194,18 +211,20 @@ function get_role_data_callback() {
 	$role_id = intval( $_POST['role_id'] );
 
 	if ( $role_id > 0 ) {
-		$role_service = new Role_Service( array( 'include' => array( $role_id ) ) );
-		$role         = $role_service->get_results()[0];
+		$role_service = new Role_Service();
+		$role         = $role_service->get_roles( array( 'include' => array( $role_id ) ) )[0];
+		$default_role = get_option( MSHMN_DEFAULT_ROLE_OPTION_KEY, -1 );
 
 		if ( isset( $role ) ) {
 			wp_send_json_success(
 				array(
-					'id'                => $role->id,
-					'name'              => $role->name,
-					'prefix'            => $role->prefix,
-					'avatar_visibility' => $role->avatar_visibility,
-					'icon'              => $role->icon,
-					'icon_url'          => $role->icon ? wp_get_attachment_url( $role->icon ) : '',
+					'id'                  => $role->id,
+					'name'                => $role->name,
+					'prefix'              => $role->prefix,
+					'avatar_visibility'   => $role->avatar_visibility,
+					'icon'                => $role->icon,
+					'icon_url'            => $role->icon ? wp_get_attachment_url( $role->icon ) : '',
+					'set_as_default_role' => (int) $default_role === (int) $role->id,
 				)
 			);
 		} else {
