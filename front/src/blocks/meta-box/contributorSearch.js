@@ -43,7 +43,7 @@ function ContributorSearch({
 				.catch((error) =>
 					console.error(
 						__(
-							'contributorSearch component: Error fetching contributors:',
+							'contributor Search component: Error fetching contributors:',
 							'musahimoun'
 						),
 						error
