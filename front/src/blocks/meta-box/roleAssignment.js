@@ -2,29 +2,54 @@ import RoleSelector from './roleSelector';
 import ContributorSearch from './contributorSearch';
 import { Button, Spinner } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { find, map } from 'lodash';
+import { find, isInteger, map } from 'lodash';
 import SelectedContributorsList from './selectedContributorsList';
 import { store } from './../../store/index';
+import { store as coreStore } from '@wordpress/core-data';
 import { useDispatch, useSelect, select, dispatch } from '@wordpress/data';
 import { store as editorStore } from '@wordpress/editor';
+import { useEffect, useMemo, useRef } from 'react';
 
 function RoleAssignment() {
-	const record = select(editorStore).getCurrentPost();
+	const { record, authorId } = useSelect((select) => {
+		return {
+			record: select(editorStore).getCurrentPost() ?? {},
+			authorId:
+				select(editorStore).getEditedPostAttribute('author') ?? null,
+		};
+	}, []);
+
 	const postId = record?.id ?? null;
-	const { roles, roleAssignments, isResolving } = useSelect(
-		(select) => {
-			const selectors = select(store);
-			if (!selectors) {
-				console.error('Mushaimoun: store problem, selectors is empty!');
-			}
-			return {
-				roles: selectors?.getRoles(),
-				roleAssignments: selectors?.getRoleAssignments(),
-				isResolving: selectors?.isResolving('getRoleAssignments'),
-			};
-		},
-		[record]
-	);
+
+	const { roles, roleAssignments, author, isResolvingAuthor, isResolving } =
+		useSelect(
+			(select) => {
+				const selectors = select(store);
+				if (!selectors) {
+					console.error(
+						'Mushaimoun: store problem, selectors is empty!'
+					);
+				}
+				return {
+					author: selectors?.getCurrentPostAuthor(),
+					roles: selectors?.getRoles(),
+					roleAssignments: selectors?.getRoleAssignments(),
+					isResolving: selectors?.isResolving('getRoleAssignments'),
+					isResolvingAuthor: selectors?.isResolving(
+						'getCurrentPostAuthor'
+					),
+				};
+			},
+			[postId]
+		);
+
+	const { mshmn_default_role } =
+		useSelect(
+			(select) => {
+				return select(coreStore).getEntityRecord('root', 'site');
+			},
+			[postId]
+		) || {};
 
 	const {
 		addRoleAssignment,
@@ -52,6 +77,25 @@ function RoleAssignment() {
 	const handleRemoveContributor = (id) => {
 		removeContributor(id);
 	};
+
+	useEffect(() => {
+		if (
+			postId &&
+			roleAssignments.length === 1 &&
+			!roleAssignments[0].role &&
+			!isResolving &&
+			!isResolvingAuthor
+		) {
+			const defaultRole_id = isInteger(mshmn_default_role)
+				? mshmn_default_role
+				: null;
+
+			const defaultRoleAssignment =
+				find(roles, { id: parseInt(defaultRole_id) }) ?? null;
+			addRoleAssignment(defaultRoleAssignment, 0);
+			addContributor(author, 0);
+		}
+	}, [postId, mshmn_default_role, authorId, isResolving, isResolvingAuthor]);
 
 	return (
 		<div>
