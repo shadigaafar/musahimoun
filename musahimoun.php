@@ -29,8 +29,9 @@ if ( defined( 'ABSPATH' ) ) :
 	define( 'MSHMN_SUPPORTED_AUTHOR_ARCHIVE', 'mshmn_author_archive_post_types' );
 	define( 'MSHMN_ROLE_ASSINGMENTS_META', 'mshmn_role_assignments' );
 	define( 'MSHMN_POST_CONTRIBUTORS_META', 'mshmn_all_post_contributor_ids' );
-	define( 'MSHMN_POST_AUTHORS_META', 'mshmn_all_post_author_ids' );
+	define( 'MSHMN_POST_AUTHORS_META', 'mshmn_all_post_author_names' );
 	define( 'MSHMN_MAIN_MENU_SLUG_NAME', 'mshmn' );
+	define( 'MSHMN_DEFAULT_ROLE_OPTION_KEY', 'mshmn_default_role' );
 
 
 
@@ -127,7 +128,7 @@ if ( defined( 'ABSPATH' ) ) :
 		$guest_service->log_deleted_id( $user_id );
 	}
 	add_action( 'deleted_user', __NAMESPACE__ . '\\log_deleted_user', 12, 1 );
-	
+
 
 	/**
 	 * Checks if the current theme is a block theme and displays a notice if not.
@@ -173,21 +174,20 @@ if ( defined( 'ABSPATH' ) ) :
 	function add_default_role() {
 
 		$role_service   = new Role_Service();
-		$is_role_exists = $role_service->get_results() ?? false;
+		$is_role_exists = $role_service->get_roles() ?? false;
 
 		$is_ar = 'ar' === determine_locale();
 
 		if ( ! $is_role_exists ) {
 					$data = array(
-			'name'              => $is_ar ? 'كاتب' : __( 'Author', 'musahimoun' ),
-			'prefix'            => $is_ar ? 'كَتبه' : __( 'Written by', 'musahimoun' ),
-				'conjunction'       => '',
-				'avatar_visibility' => true,
-				'icon'              => null,
-			);
-			$role_service->insert( $data );
+						'name'              => $is_ar ? 'كاتب' : __( 'Author', 'musahimoun' ),
+						'prefix'            => $is_ar ? 'كَتبه' : __( 'Written by', 'musahimoun' ),
+						'conjunction'       => '',
+						'avatar_visibility' => true,
+						'icon'              => null,
+					);
+					$role_service->insert( $data );
 		}
 	}
 	add_action( 'mshmn_plugin_activated', __NAMESPACE__ . '\\add_default_role' );
-
 endif;
