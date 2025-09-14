@@ -52,7 +52,6 @@ function RoleAssignment() {
 			[postId]
 		) || {};
 
-	console.log('mshmn_default_role', mshmn_default_role);
 	const {
 		addRoleAssignment,
 		removeRoleAssignement,
