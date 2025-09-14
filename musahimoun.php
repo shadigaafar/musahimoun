@@ -3,7 +3,7 @@
  * Plugin Name: Musahimoun
  * Plugin URI:
  * Description: This plugin allows you to choose an author, create a guest author or choose multiple authors and contributors..
- * Version: 1.0
+ * Version: 1.2.0
  * Requires at least: 6.4
  * Requires PHP: 7.4
  * Author: Shadi gaafar
