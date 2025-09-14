@@ -21,22 +21,28 @@ function RoleAssignment() {
 
 	const postId = record?.id ?? null;
 
-	const { roles, roleAssignments, author, isResolvingAuthor, isResolving } =
-		useSelect((select) => {
-			const selectors = select(store);
-			if (!selectors) {
-				console.error('Mushaimoun: store problem, selectors is empty!');
-			}
-			return {
-				author: selectors?.getCurrentPostAuthor(),
-				roles: selectors?.getRoles(),
-				roleAssignments: selectors?.getRoleAssignments(),
-				isResolving: selectors?.isResolving('getRoleAssignments'),
-				isResolvingAuthor: selectors?.isResolving(
-					'getCurrentPostAuthor'
-				),
-			};
-		}, []);
+	const isSetDefaultRoleAssignementRef = useRef(false);
+	const {
+		roles,
+		roleAssignments,
+		author,
+		isResolvingAuthor,
+		isResolving,
+		isResolvingRoles,
+	} = useSelect((select) => {
+		const selectors = select(store);
+		if (!selectors) {
+			console.error('Mushaimoun: store problem, selectors is empty!');
+		}
+		return {
+			author: selectors?.getCurrentPostAuthor(),
+			roles: selectors?.getRoles(),
+			roleAssignments: selectors?.getRoleAssignments(),
+			isResolving: selectors?.isResolving('getRoleAssignments'),
+			isResolvingAuthor: selectors?.isResolving('getCurrentPostAuthor'),
+			isResolvingRoles: selectors?.isResolving('getRoles'),
+		};
+	}, []);
 
 	const { mshmn_default_role } =
 		useSelect(
@@ -46,6 +52,7 @@ function RoleAssignment() {
 			[postId]
 		) || {};
 
+	console.log('mshmn_default_role', mshmn_default_role);
 	const {
 		addRoleAssignment,
 		removeRoleAssignement,
@@ -75,23 +82,28 @@ function RoleAssignment() {
 
 	useEffect(() => {
 		if (
-			postId &&
 			roleAssignments.length === 1 &&
 			!roleAssignments[0].role &&
 			!isResolving &&
 			!isResolvingAuthor
 		) {
+			if (isSetDefaultRoleAssignementRef.current) return;
+
 			const defaultRole_id = isInteger(mshmn_default_role)
 				? mshmn_default_role
 				: null;
 
 			const defaultRoleAssignment =
 				find(roles, { id: parseInt(defaultRole_id) }) ?? null;
+
+			if (!defaultRoleAssignment || isEmpty(author)) return;
+
 			addRoleAssignment(defaultRoleAssignment, 0);
-			if (isEmpty(author)) return;
 			addContributor(author, 0);
+
+			isSetDefaultRoleAssignementRef.current = true;
 		}
-	}, [postId, mshmn_default_role, authorId, isResolving, isResolvingAuthor]);
+	}, [mshmn_default_role, isResolving, isResolvingAuthor, isResolvingRoles]);
 
 	return (
 		<div>
