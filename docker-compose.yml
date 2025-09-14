@@ -50,16 +50,18 @@ services:
       - php81
 
   db:
-    image: mysql:5.7
+    image: mysql:8
+    container_name: my_db
     restart: always
     environment:
-      MYSQL_DATABASE: exampledb
-      MYSQL_USER: exampleuser
-      MYSQL_PASSWORD: examplepass
-      MYSQL_RANDOM_ROOT_PASSWORD: '1'
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: myapp_db
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypass
+    ports:
+      - "3306:3306"
     volumes:
-      - db:/var/lib/mysql
-
+      - db_data:/var/lib/mysql
 volumes:
   wordpress:
-  db:
+  db_data:
