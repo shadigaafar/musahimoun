@@ -273,7 +273,8 @@ class Contributor_List_Table extends \WP_List_Table {
 			admin_url( "admin.php?page=$this->main_page_name", $proto )
 		);
 
-		$edit_profile_url = get_edit_profile_url( $item['id'] );
+
+		$edit_profile_url = admin_url( 'user-edit.php?user_id=' . intval( $item['id'] ), $proto );
 
 		$nonced_edit_url = ! $is_user ? wp_nonce_url( $edit_url, $edit_nonce_action, $this->editnoncename ) : $edit_profile_url;
 
