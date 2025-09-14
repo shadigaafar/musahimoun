@@ -53,6 +53,7 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 			add_action( 'init', array( $this, 'register_patterns' ), 12 );
 			add_action( 'init', array( $this, 'register_options' ), 12 );
 			add_action( 'init', array( $this, 'set_post_authors_meta' ), 20 );
+			add_action( 'save_post', array( $this, 'update_post_authors_meta_on_update' ), 12, 2 );
 		}
 
 		/**
@@ -555,6 +556,52 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 			}
 
 			update_option( '_tmp_mshmn_set_post_authors_meta', true );
+		}
+
+		/**
+		 * Update post authors meta when a post is updated.
+		 * Todo: do this in js then delete this.
+		 *
+		 * @param int $post_id The ID of the post being updated.
+		 * @param WP_Post $post The post object.
+		 */
+		public function update_post_authors_meta_on_update( $post_id, $post ) {
+			// Only update for supported post types.
+			if ( ! in_array( get_post_type( $post_id ), $this->selected_post_types, true ) ) {
+				return;
+			}
+
+			$default_role = get_option( MSHMN_DEFAULT_ROLE_OPTION_KEY, false );
+			if ( false === $default_role ) {
+				return;
+			}
+
+			$post_role_assignments = is_array( get_post_meta( $post_id, MSHMN_ROLE_ASSINGMENTS_META, true ) ) ? get_post_meta( $post_id, MSHMN_ROLE_ASSINGMENTS_META, true ) : array();
+
+			$author_ids = array_reduce(
+				$post_role_assignments,
+				function ( $carry, $role_assignment ) use ( $default_role ) {
+					if ( isset( $role_assignment['role'] ) && (int) $role_assignment['role'] === (int) $default_role ) {
+						if ( isset( $role_assignment['contributors'] ) && is_array( $role_assignment['contributors'] ) ) {
+							return array_merge( $carry, $role_assignment['contributors'] );
+						}
+					}
+					return $carry;
+				},
+				array()
+			);
+
+			if ( empty( $author_ids )  || ! is_array( $author_ids ) ) {
+				return;
+			}
+
+			$contributor_service = new Contributor_Service( array( 'include' => $author_ids ) );
+			$contributors = $contributor_service->get_results();
+			$author_names = isset( $contributors[0] ) && ! empty( $contributors[0]->name ) ? array_column( $contributors, 'name' ) : array();
+
+			if ( ! empty( $author_names ) ) {
+				update_post_meta( $post_id, MSHMN_POST_AUTHORS_META, implode( ',', $author_names ) );
+			}
 		}
 	}
 endif;
