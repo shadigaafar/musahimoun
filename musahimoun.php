@@ -32,6 +32,7 @@ if ( defined( 'ABSPATH' ) ) :
 	define( 'MSHMN_POST_AUTHORS_META', 'mshmn_all_post_author_names' );
 	define( 'MSHMN_MAIN_MENU_SLUG_NAME', 'mshmn' );
 	define( 'MSHMN_DEFAULT_ROLE_OPTION_KEY', 'mshmn_default_role' );
+	define( 'MSHMN_INCLUDED_USER_ROLES', 'mshmn_included_user_roles' );
 
 
 
