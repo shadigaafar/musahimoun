@@ -1,4 +1,4 @@
-import { isEmpty } from 'lodash';
+import { isEmpty, uniqueId } from 'lodash';
 import { __ } from '@wordpress/i18n';
 import { Button } from '@wordpress/components';
 
@@ -13,7 +13,7 @@ const SelectedContributorsList = ({ title, contributors, onRemove }) => {
 			<h3>{title}</h3>
 			<ul className="mshmn__selected-contributors-list">
 				{contributors.map((contributor) => (
-					<li key={contributor?.id}>
+					<li key={uniqueId('contributor-') + contributor?.id}>
 						{contributor?.name}
 						<Button
 							className="mshmn__remove-icon"
