@@ -2,7 +2,7 @@ import RoleSelector from './roleSelector';
 import ContributorSearch from './contributorSearch';
 import { Button, Spinner } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { find, isInteger, map } from 'lodash';
+import { find, isEmpty, isInteger, map, uniqueId } from 'lodash';
 import SelectedContributorsList from './selectedContributorsList';
 import { store } from './../../store/index';
 import { store as coreStore } from '@wordpress/core-data';
@@ -22,26 +22,21 @@ function RoleAssignment() {
 	const postId = record?.id ?? null;
 
 	const { roles, roleAssignments, author, isResolvingAuthor, isResolving } =
-		useSelect(
-			(select) => {
-				const selectors = select(store);
-				if (!selectors) {
-					console.error(
-						'Mushaimoun: store problem, selectors is empty!'
-					);
-				}
-				return {
-					author: selectors?.getCurrentPostAuthor(),
-					roles: selectors?.getRoles(),
-					roleAssignments: selectors?.getRoleAssignments(),
-					isResolving: selectors?.isResolving('getRoleAssignments'),
-					isResolvingAuthor: selectors?.isResolving(
-						'getCurrentPostAuthor'
-					),
-				};
-			},
-			[postId]
-		);
+		useSelect((select) => {
+			const selectors = select(store);
+			if (!selectors) {
+				console.error('Mushaimoun: store problem, selectors is empty!');
+			}
+			return {
+				author: selectors?.getCurrentPostAuthor(),
+				roles: selectors?.getRoles(),
+				roleAssignments: selectors?.getRoleAssignments(),
+				isResolving: selectors?.isResolving('getRoleAssignments'),
+				isResolvingAuthor: selectors?.isResolving(
+					'getCurrentPostAuthor'
+				),
+			};
+		}, []);
 
 	const { mshmn_default_role } =
 		useSelect(
@@ -93,6 +88,7 @@ function RoleAssignment() {
 			const defaultRoleAssignment =
 				find(roles, { id: parseInt(defaultRole_id) }) ?? null;
 			addRoleAssignment(defaultRoleAssignment, 0);
+			if (isEmpty(author)) return;
 			addContributor(author, 0);
 		}
 	}, [postId, mshmn_default_role, authorId, isResolving, isResolvingAuthor]);
@@ -103,7 +99,7 @@ function RoleAssignment() {
 
 			{roleAssignments?.map((assignment, index) => (
 				<div
-					key={index}
+					key={uniqueId(`role-assignment-${index}`)}
 					style={{ marginBottom: '20px', position: 'relative' }}
 				>
 					<div className="mshmn__remove-icon-btn-wrapper">

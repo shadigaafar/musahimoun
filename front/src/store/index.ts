@@ -392,6 +392,12 @@ const resolvers = {
 		const postId = params.get('post');
 
 		try {
+			if (!postId) {
+				yield actions.setRoleAssignments([
+					{ role: null, contributors: [] },
+				]);
+				return;
+			}
 			const record = yield apiFetch({ path: `wp/v2/posts/${postId}` });
 			const contributorsByRoles = record?.meta
 				.mshmn_role_assignments as RoleAssignmentNumerical[];
@@ -421,8 +427,14 @@ const resolvers = {
 	> {
 		const params = new URLSearchParams(window.location.search);
 		const postId = params.get('post');
-
 		try {
+			if (!postId) {
+				const contributors = yield apiFetch({
+					path: `${CONTRIBUTOR_PATH}?ids=${currentUserId}`,
+				});
+				yield actions.setCurrentPostAuthor(contributors[0] ?? null);
+				return;
+			}
 			const record = yield apiFetch({ path: `wp/v2/posts/${postId}` });
 			const authorId = record?.author ?? currentUserId ?? '';
 
