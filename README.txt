@@ -1,10 +1,10 @@
-=== Musahimoun ===
+=== Musahimoun – Multiple Authors, Guest Authors & Contributors for WordPress Block Themes ===
 Contributors: shadialaghbari
 Donate link: 
 Tags: contributors, guest author, authors, mutli-author, profile
 Requires at least: 6.4
 Tested up to: 6.8
-Stable tag: 1.0
+Stable tag: 1.2.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -23,6 +23,9 @@ This plugin allows you to seamlessly add guest authors or contributors to your W
 ✅ **Ability to support any post type:** You can chose which post type to add this feature to.
 ✅ **One click migratiion from PublisherPress Authors:** You can migrate on one click from PublisherPress Authors. Migration from other plugins will be included in new releases soon.
 
+= Othor =
+You can use the `mshmn_all_post_author_names` custom field (post meta) to retrieve all primary authors or contributors assigned under the default role.
+A common use case is when you want to define a custom schema.org configuration for a post type, and want to set the post author attribute.
 
 == Installation ==
 
@@ -33,14 +36,21 @@ This plugin allows you to seamlessly add guest authors or contributors to your W
 1. All Musahimoun blocks must be wrapped by "Musahimoun: contributor query loop" block.
 
 == Frequently Asked Questions ==
-= Will Musahimoun Authorship work with my theme? =
+= Will Musahimoun work with my theme? =
 Only if it was a block theme, Musahimoun developped specifically for block themes. 
 
 == Screenshots ==
 1.This is How it will look in front end.
 
 == Changelog ==
-
+= 1.7.1 (2024-06-28) =
+* Fix front page 404 error when homepage is set to static.
+* Add `mshmn_all_post_author_names` post meta.
+* Add ability to make a default role.
+* Add default role assingment for new posts.
+* Add ability to set a list of included real user roles to be shown in contirbutors table, and to be avaiable when setting a contributor in post.
 
 == Upgrade Notice ==
+= 1.7.1 =
+This update fixes a front page 404 error when the homepage is set to static, adds the `mshmn_all_post_author_names` post meta, introduces default role assignment for new posts, and allows setting included real user roles for contributors. Please review your settings after updating.
 
