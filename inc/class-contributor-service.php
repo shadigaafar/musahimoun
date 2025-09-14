@@ -69,13 +69,8 @@ if ( ! class_exists( __NAMESPACE__ . '\\Contributor_Service' ) ) :
 			$qv = $this->fill_query_vars( $qv );
 		}
 
-		/**
-		 * Get all contributors (users and guests) based on query vars.
-		 *
-		 * @param string $output Optional. Any of ARRAY_A | OBJECT constants. Default OBJECT.
-		 * @return array|null Array of results, or null on failure.
-		 */
-		public function get_results( $output = OBJECT ) {
+		private function prepare_user_args( $query = array() ) {
+			
 			$qv = $this->query_vars;
 
 			// Retrieve and limit user IDs. Necessary to get them arranged with $guests.
@@ -90,42 +85,35 @@ if ( ! class_exists( __NAMESPACE__ . '\\Contributor_Service' ) ) :
 				'order'          => $qv['order'],
 				'fields'         => $this->map_to_user_field( $qv['fields'] ),
 				'nicename'       => $qv['nicename'],
+				'role__in'       => get_option( MSHMN_INCLUDED_USER_ROLES, array( 'author', 'editor', 'administrator' ) ),
 			);
+
+			if( empty( $user_args['include'] ) ) {
+				unset( $user_args['include'] );
+			} else {
+				$user_args['include'] = $this->filter_user_ids( (array) $user_args['include'] );
+			}
+
+			return $user_args;
+		}
+		/**
+		 * Get all contributors (users and guests) based on query vars.
+		 *
+		 * @param string $output Optional. Any of ARRAY_A | OBJECT constants. Default OBJECT.
+		 * @return array|null Array of results, or null on failure.
+		 */
+		public function get_results( $output = OBJECT ) {
+			
+			$qv = $this->query_vars;
+
+			$user_args = $this->prepare_user_args( $qv );
+
 			$guest_args = $qv;
 
 			if ( isset( $qv['fields'] ) ) {
-				$guest_args          = $qv;
 				$guest_args['field'] = 'all' === $qv['fields'] ? '' : $qv['fields'];
 			}
-
-			// Necessary to get them arranged with $users.
-			if ( false === isset( $qv['include'] ) ) {
-
-				$user_args['fields'] = 'ID';
-				$user_query          = new \WP_User_Query( $user_args );
-				$user_ids            = $user_query->get_results(); // Get only user IDs.
-
-				$guest_args = array_merge(
-					$qv,
-					array(
-						'field' => 'id', // Only retrieve IDs.
-					)
-				);
-
-				// Retrieve and limit guest IDs.
-				$guest_service = new Guest_Service( $guest_args, ARRAY_N );
-
-				$guest_ids = $guest_service->get_results(); // Retrieve only IDs of guests.
-
-				// Merge and sort the IDs.
-				$all_ids = array_merge( $user_ids, $guest_ids );
-
-				sort( $all_ids, SORT_NUMERIC ); // Sort numerically in ascending order.
-
-				// Limit to per_page number of IDs.
-				$all_ids = array_slice( $all_ids, 0, $qv['per_page'] );
-			}
-
+			
 			// Query users and guests using the limited ID after it has been sorted by ids.
 			$user_query = new \WP_User_Query( $user_args );
 			$users      = ! empty( $user_query->get_results() ) ? $this->format_users( $user_query->get_results(), $output ) : array();
@@ -157,7 +145,7 @@ if ( ! class_exists( __NAMESPACE__ . '\\Contributor_Service' ) ) :
 				}
 			}
 			// TODO : FIX SORTING TO BE THE SAME AS IT WAS GET.
-			return array_merge( $users, $guests ?? array() );
+			return array_merge( $users ?? array(), $guests ?? array() );
 		}
 
 		/**
