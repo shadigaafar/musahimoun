@@ -21,12 +21,27 @@ if ( ! class_exists( __NAMESPACE__ . '\\Migration_Handler' ) ) :
 	class Migration_Handler {
 
 		/**
+		 * Flag indicating if migration can be run (i.e. required plugin is active).
+		 *
+		 * @var bool
+		 */
+		public bool $is_ready = false;
+
+		/**
 		 * Constructor
 		 */
-		public function run_migration() {
+		public function __construct() {
+			$this->is_ready = $this->is_plugin_active( 'publishpress-authors/publishpress-authors.php' );
+		}
 
+		/**
+		 * Run the migration process.
+		 *
+		 * @return void
+		 */
+		public function run_migration() {
 			// PublishPress Authors: taxonomy linking to CPT ppma_authors
-			if ( $this->is_plugin_active( 'publishpress-authors/publishpress-authors.php' ) ) {
+			if ( $this->is_ready ) {
 				$this->migrate_publishpress_authors();
 			}
 		}
