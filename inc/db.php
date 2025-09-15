@@ -25,7 +25,7 @@ function create_guest_contributor_table() {
 		email varchar(255) NOT NULL,
 		avatar bigint(20) UNSIGNED,
         CONSTRAINT mshmn_id_nicename_fk UNIQUE (id, nicename),
-		CONSTRAINT mshmn_avatar_fk FOREIGN KEY (avatar) REFERENCES $posts_table_name(ID)
+		CONSTRAINT mshmn_avatar_fk FOREIGN KEY (avatar) REFERENCES $posts_table_name(ID) ON DELETE SET NULL
 	) $charset_collate;";
 
 	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -52,7 +52,7 @@ function create_mshmn_role_table() {
         avatar_visibility tinyint(1) NOT NULL DEFAULT 0,
         PRIMARY KEY (id),
         UNIQUE KEY unique_nicename (nicename),
-		CONSTRAINT mshmn_role_icon_fk FOREIGN KEY (icon) REFERENCES $posts_table_name(ID)
+		CONSTRAINT mshmn_role_icon_fk FOREIGN KEY (icon) REFERENCES $posts_table_name(ID) ON DELETE SET NULL
 
     ) $charset_collate;";
 
