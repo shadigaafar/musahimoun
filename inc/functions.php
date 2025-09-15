@@ -43,8 +43,8 @@ function get_guests( $args = array(), $output = OBJECT ): array {
  * @return array List of contributors.
  */
 function get_contributors( $args = array(), $output = OBJECT ): array {
-	$contributor_service = new \MSHMN\Contributor_Service( $args, $output );
-	return (array) $contributor_service->get_results();
+	$contributor_service = new \MSHMN\Contributor_Service( $args );
+	return (array) $contributor_service->get_results( $output);
 }
 
 /**
@@ -91,16 +91,16 @@ function get_role_assingments(): array {
 		$contributors = array();
 
 		if ( ! empty( $role_assignment['contributors'] ) ) {
-			$contributors_ids   = $role_assignment['contributors'];
-			$contributors_query = new \MSHMN\Contributor_Service( array( 'include' => $contributors_ids ) );
-			$contributors       = $contributors_query->get_results( ARRAY_A );
+			$contributors_ids   = (array) $role_assignment['contributors'];
+			$contributors = get_contributors( array( 'include' => $contributors_ids ), ARRAY_A );
 		}
 
-		$role = $roles->get_roles( array( 'include' => array( $role_assignment['role'] ) ) )[0] ?? array();
+		$role = (array) $roles->get_roles( array( 'include' => array( $role_assignment['role'] ) ), ARRAY_A )[0] ?? array();
+
 		$role_assignments_with_entites[ $key ]['role'] = array_merge(
 			$role,
 			array(
-				'icon' => ! empty( $role->icon ) ? wp_get_attachment_image_url( $role->icon, 'thumbnail', true ) : null,
+				'icon' => ! empty( $role['icon'] ) ? wp_get_attachment_image_url( $role['icon'], 'thumbnail', true ) : null,
 			)
 		);
 

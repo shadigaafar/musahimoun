@@ -114,9 +114,13 @@ if ( ! class_exists( __NAMESPACE__ . '\\Contributor_Service' ) ) :
 				$guest_args['field'] = 'all' === $qv['fields'] ? '' : $qv['fields'];
 			}
 			
-			// Query users and guests using the limited ID after it has been sorted by ids.
-			$user_query = new \WP_User_Query( $user_args );
-			$users      = ! empty( $user_query->get_results() ) ? $this->format_users( $user_query->get_results(), $output ) : array();
+			$users = array();
+
+			//check if include is set and not empty after filtering. Important for not getting all users if no match.
+			if ( isset( $user_args['include'] ) && ! empty($this->filter_user_ids( $user_args['include'] )) ) {
+				$user_query = new \WP_User_Query( $user_args );
+				$users      = ! empty( $user_query->get_results() ) ? $this->format_users( $user_query->get_results(), $output ) : array();
+			}
 
 			$guest_service = new Guest_Service( $guest_args, ARRAY_A );
 			

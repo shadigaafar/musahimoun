@@ -232,24 +232,27 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 						array(
 							array(
 								'key'     => MSHMN_POST_CONTRIBUTORS_META,
-								'value'   => '[[:<:]]' . $this->contributor->id . '[[:>:]]',
+								'value'   => '(^|,)' . $this->contributor->id . '(,|$)',
 								'compare' => 'REGEXP',
 							),
 						),
 					);
 				} elseif ( $query->is_author() ) {
-					$user_id = get_user_by( 'slug', $author_nicename )->ID;
+					$user_id = get_user_by( 'slug', $author_nicename )->ID ?? 0;
 
+					highlight_array( $user_id, 'user_id' );
 					// this step is important, cos some users can be assigned as an author by this plugin,
 					// and the don't actually has posts, so they don't have author archive.
 					$this->contributor = (object) get_contributors( array( 'include' => $user_id ) )[0];
+
+					highlight_array( $user_id, 'user_id' , $this->contributor);
 					$query->set( 'author', false );
 					$query->set(
 						'meta_query',
 						array(
 							array(
 								'key'     => MSHMN_POST_CONTRIBUTORS_META,
-								'value'   => '[[:<:]]' . $this->contributor->id . '[[:>:]]',
+								'value'   => '(^|,)' . $this->contributor->id . '(,|$)',
 								'compare' => 'REGEXP',
 							),
 						),
