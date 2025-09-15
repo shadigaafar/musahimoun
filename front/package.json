@@ -12,12 +12,11 @@
 		"lint:md:js": "wp-scripts lint-md-js",
 		"lint:pkg-json": "wp-scripts lint-pkg-json",
 		"packages-update": "wp-scripts packages-update",
-		"dev": "wp-scripts start",
 		"test:e2e": "wp-scripts test-e2e",
 		"test:unit": "wp-scripts test-unit-js",
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"start": "webpack-dev-server --open --config webpack.config.js",
-		"build": "webpack --watch --config webpack.config.js"
+		"dev": "webpack --watch --mode development --config webpack.config.js",
+		"build": "webpack --watch --mode production --config webpack.config.js"
 	},
 	"author": "Shadi Gaafar",
 	"license": "ISC",
