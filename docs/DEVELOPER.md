@@ -5,8 +5,6 @@
 - Follow WordPress coding standards for PHP, JavaScript, and CSS.
 - Submit pull requests with detailed descriptions and reference any related issues.
 
-### Architecture
-
 ### Architecture & Directory Responsibilities
 
 - **`admin/`**: Contains only JavaScript files for admin-side UI logic (e.g., media uploaders, table scripts). No PHP or UI templates here.
