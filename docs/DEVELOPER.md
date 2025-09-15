@@ -107,7 +107,8 @@ No table for role assigments. It lives in post meta field called `mshmn_role_ass
 - To build assets:
     1. Navigate to the `front/` directory.
     2. Run `npm install` to install dependencies.
-    3. Run `npm run build` to generate assets for both development and production modes.
+    3. Run `npm run dev` to generate assets for development.
+    3. Run `npm run build` to generate assets production.
 
 ### Packaging (`package-plugin.ps1`)
 - The `package-plugin.ps1` PowerShell script creates a distributable ZIP archive of the plugin.
