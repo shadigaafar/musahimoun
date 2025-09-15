@@ -8,7 +8,11 @@
 
 namespace MSHMN;
 
+use function MSHMN\Functions\get_the_contributors_field;
+use function MSHMN\Functions\get_the_contributor_ids;
+use function MSHMN\Functions\get_contributors;
 use function MSHMN\Functions\get_guests;
+use function MSHMN\Functions\is_contributors_under_default_role;
 
 if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 
@@ -67,48 +71,50 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 		public function plugin_front_setup() {
 			if ( ! is_admin() ) {
 
-				add_filter( 'the_author', array( $this, 'contributor_names' ), 12 );
-				add_filter( 'get_the_author_display_name', array( $this, 'contributor_names' ), 12 );
-				add_filter( 'get_the_author_user_nicename', array( $this, 'contributor_names' ), 12 );
-				add_filter( 'get_the_author_nickname', array( $this, 'contributor_names' ), 12 );
+				add_filter( 'the_author', array( $this, 'contributor_names' ), 20000000 );
+				add_filter( 'get_the_author_display_name', array( $this, 'contributor_names' ), 20000000 );
+				add_filter( 'get_the_author_user_nicename', array( $this, 'contributor_names' ), 20000000 );
+				add_filter( 'get_the_author_nickname', array( $this, 'contributor_names' ), 20000000 );
 
-				add_filter( 'the_author_description', array( $this, 'contributor_description' ), 12 );
-				add_filter( 'get_the_author_description', array( $this, 'contributor_description' ), 12 );
+				add_filter( 'the_author_description', array( $this, 'contributor_description' ), 20000000 );
+				add_filter( 'get_the_author_description', array( $this, 'contributor_description' ), 20000000 );
 
-				add_filter( 'the_author_user_email', array( $this, 'contributor_email' ), 12 );
-				add_filter( 'get_the_author_user_email', array( $this, 'contributor_email' ), 12 );
+				add_filter( 'the_author_user_email', array( $this, 'contributor_email' ), 20000000 );
+				add_filter( 'get_the_author_user_email', array( $this, 'contributor_email' ), 20000000 );
 
-				add_filter( 'the_author_ID', array( $this, 'contributor_id' ), 12 );
-				add_filter( 'get_the_author_ID', array( $this, 'contributor_id' ), 12 );
+				add_filter( 'get_the_author_user_url', array( $this, 'contributor_url' ), 20000000 );
 
-				add_filter( 'posts_pre_query', array( $this, 'filter_posts_by_guests' ), 12, 2 );
-				add_action( 'document_title_parts', array( $this, 'filter_document_title' ), 12, 1 );
+				add_filter( 'the_author_ID', array( $this, 'contributor_id' ), 20000000 );
+				add_filter( 'get_the_author_ID', array( $this, 'contributor_id' ), 20000000 );
+
+				add_filter( 'posts_pre_query', array( $this, 'filter_posts_by_guests' ), 20000000, 2 );
+				add_action( 'document_title_parts', array( $this, 'filter_document_title' ), 20000000, 1 );
 			}
 		}
 
 		/**
-		 * Get the author ids inside a query loop
-		 */
-		public function get_the_contributor_ids() {
-
-			$all_contributor_ids = ! empty( get_post_meta( get_the_ID(), MSHMN_POST_CONTRIBUTORS_META, true ) ) ? explode( ',', get_post_meta( get_the_ID(), MSHMN_POST_CONTRIBUTORS_META, true ) ) : array();
-
-			return $all_contributor_ids;
-		}
-
-		/**
-		 * Gets all post authors, guest and users.
+		 * Determine if the current post type is supported by the plugin.
 		 *
-		 * @param array $args Arguments.
-		 * @return array list of authors
+		 * @return bool true if supported, false otherwise.
 		 */
-		public function get_post_contributors( $args = array() ): array {
-			$contributors = new Contributor_Service( $args );
-			return $contributors->get_results() ?? array();
+		private function is_supported_post_type() {
+			$current_post_type = get_post_type();
+			return in_array( $current_post_type, $this->selected_post_types, true );
 		}
 
 		/**
-		 * Filters author name
+		 * Determine if there is a single contributor and that contributor is under the default role.
+		 *
+		 * @return bool true if single contributor under default role, false otherwise.
+		 */
+		private function is_single_contributor_under_default_role() : bool {
+			$contributor_ids = get_the_contributor_ids();
+			$is_contributor_under_default_role = is_contributors_under_default_role( $contributor_ids );
+			return count( $contributor_ids ) === 1 && $is_contributor_under_default_role;
+		}
+
+		/**
+		 * Filters author name.
 		 *
 		 * @param string $name author name, passed from WordPress filters for author name.
 		 * @return string author name.
@@ -118,6 +124,13 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 				return is_object( $this->contributor ) ? $this->contributor->name : $name;
 			}
 
+			if( is_singular() && $this->is_supported_post_type() && ! $this->is_single_contributor_under_default_role() ) {
+				$contributor_name = get_the_contributors_field( 'name' )[0] ?? '';
+
+				if( ! empty( $contributor_name ) ) {
+					return $contributor_name;
+				}
+			}
 			return $name;
 		}
 
@@ -133,6 +146,13 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 				return is_object( $this->contributor ) ? $this->contributor->description : $description;
 			}
 
+			if( is_singular() && $this->is_supported_post_type() && ! $this->is_single_contributor_under_default_role() ) {
+				$description = get_the_contributors_field( 'description' )[0] ?? '';
+
+				if( ! empty( $description ) ) {
+					return $description;
+				}
+			}
 			return $description;
 		}
 
@@ -148,6 +168,13 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 				return is_object( $this->contributor ) ? $this->contributor->email : $email;
 			}
 
+			if( is_singular() && $this->is_supported_post_type() && ! $this->is_single_contributor_under_default_role() ) {
+				$email = get_the_contributors_field( 'email' )[0] ?? '';
+
+				if( ! empty( $email ) ) {
+					return $email;
+				}
+			}
 			return $email;
 		}
 
@@ -162,11 +189,25 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 			if ( is_author() ) {
 				return is_object( $this->contributor ) ? $this->contributor->id : $id;
 			}
-
 			return $id;
 		}
 
 
+		public function contributor_url( $url = '' ): string {
+
+			if ( is_author() ) {
+				return is_object( $this->contributor ) ? $this->contributor->url : $url;
+			}
+
+			if( is_singular() && $this->is_supported_post_type() && ! $this->is_single_contributor_under_default_role() ) {
+				$url = get_the_contributors_field( 'url' )[0] ?? '';
+
+				if( ! empty( $url ) ) {
+					return $url;
+				}
+			}
+			return $url;
+		}	
 		/**
 		 * Filters post query on author page to display the posts associated the guest author.
 		 *
@@ -201,7 +242,7 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 
 					// this step is important, cos some users can be assigned as an author by this plugin,
 					// and the don't actually has posts, so they don't have author archive.
-					$this->contributor = (object) $this->get_post_contributors( array( 'include' => $user_id ) )[0];
+					$this->contributor = (object) get_contributors( array( 'include' => $user_id ) )[0];
 					$query->set( 'author', false );
 					$query->set(
 						'meta_query',
@@ -277,11 +318,11 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 		public function display_contributors_column( $column_name, $post_id ) {
 			$current_post_type = get_post_type( $post_id );
 			if ( 'post_authors' === $column_name && in_array( $current_post_type, $this->selected_post_types, true ) ) {
-				$ids = $this->get_the_contributor_ids();
+				$ids = get_the_contributor_ids();
 				if ( ! empty( $ids ) ) {
-					$authors      = $this->get_post_contributors(
+					$authors      = get_contributors(
 						array(
-							'include' => $this->get_the_contributor_ids() ?? array(),
+							'include' => get_the_contributor_ids() ?? array(),
 							'fields'  => 'name',
 						)
 					);
@@ -450,8 +491,6 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 		}
 
 		/**
-		 * Todo: delete this method.
-		 * Mirgrating.
 		 * Set post authors names meta when plugin is initialized.
 		 */
 		public function set_post_authors_meta() {
