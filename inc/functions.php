@@ -9,6 +9,7 @@
 namespace MSHMN\Functions;
 
 use MSHMN\Guest_Service;
+use MSHMN\Role_Service;
 
 /**
  * Retrieve list of guest authors matching criteria.
@@ -27,6 +28,23 @@ function get_guests( $args = array(), $output = OBJECT ): array {
 	$user_search = new Guest_Service( $args, $output );
 
 	return (array) $user_search->get_results();
+}
+
+/**
+ * Retrieve list of contributors matching criteria.
+ *
+ * @since 1.0
+ *
+ * @see Contributor_Service
+ *
+ * @param array  $args Optional. Arguments to retrieve contributors. See Contributor_Service::prepare_query()
+ *                    for more information on accepted arguments.
+ * @param string $output Optional. Any of ARRAY_A | ARRAY_N | OBJECT | OBJECT_K constants. With one of the first three, return an array of rows indexed from 0 by SQL result row number. Each row is an associative array (column => value, ...), a numerically indexed array (0 => value, ...), or an object ( ->column = value ), respectively. With OBJECT_K, return an associative array of row objects keyed by the value of each row's first column's value. Duplicate keys are discarded. Default OBJECT.
+ * @return array List of contributors.
+ */
+function get_contributors( $args = array(), $output = OBJECT ): array {
+	$contributor_service = new \MSHMN\Contributor_Service( $args, $output );
+	return (array) $contributor_service->get_results();
 }
 
 /**
@@ -323,4 +341,78 @@ function insert_role( $data, $set_as_default ): array {
 		'message'        => $message,
 		'set_as_default' => $set_as_default,
 	);
+}
+
+
+/**
+ * Get default Role.
+ */
+function get_default_role(): object|null {
+	$default_role_id = get_option( MSHMN_DEFAULT_ROLE_OPTION_KEY, -1 );
+
+	$role_service = new Role_Service();
+	$role         = $role_service->get_roles( array( 'include' => array( $default_role_id ) ) )[0] ?? false;
+
+	if ( $role ) {
+		return $role;
+	}
+	return null;
+}
+
+/**
+ * Check if all contributors are under the default role.
+ *
+ * @param array $contributor_ids Array of contributor IDs to check.
+ * @return bool True if all contributors are under the default role, false otherwise.
+ */
+function is_contributors_under_default_role( array $contributor_ids ): bool {
+	$default_role = get_default_role();
+	if ( ! $default_role ) {
+		return false;
+	}
+
+	$contributors = get_contributors( array( 'include' => $contributor_ids ) ) ?? null;
+	if ( ! empty( $contributors ) ) {
+		return false;
+	}
+	foreach ( $contributors as $contributor ) {
+		if ( (int) $contributor->role !== (int) $default_role->id ) {
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
+ * Get contributor IDs for the current post.
+ *
+ * @return array List of contributor IDs.
+ */
+function get_the_contributor_ids() : array{
+	$the_post_contributor_ids = ! empty( get_post_meta( get_the_ID(), MSHMN_POST_CONTRIBUTORS_META, true ) ) ? explode( ',', get_post_meta( get_the_ID(), MSHMN_POST_CONTRIBUTORS_META, true ) ) : array();
+	return $the_post_contributor_ids;
+}
+
+/**
+ * Get specific field values for contributors of the current post.
+ *
+ * @param string $field The field to retrieve (e.g., 'id', 'name', 'email').
+ * @param array  $contributor_ids Optional. Array of contributor IDs. If not provided, will fetch for current post.
+ * @return array List of field values for the specified contributors.
+ */
+function get_the_contributors_field( $field, $contributor_ids = array() ): array {
+
+	$the_post_contributor_ids =  $contributor_ids ?: get_the_contributor_ids();
+
+	if ( empty( $the_post_contributor_ids ) ) {
+		return array();
+	}
+
+	$contributors_field = get_contributors( array( 'include' => $the_post_contributor_ids, 'fields' => $field ) ) ?? null;
+
+	if ( empty( $contributors ) ) {
+		return array();
+	}
+
+	return $contributors_field;
 }
