@@ -100,7 +100,7 @@ function get_role_assingments(): array {
 		$role_assignments_with_entites[ $key ]['role'] = array_merge(
 			$role,
 			array(
-				'icon' => ! empty( $role['icon'] ) ? wp_get_attachment_image_url( $role['icon'], 'thumbnail', true ) : null,
+				'icon' => ! empty( $role->icon ) ? wp_get_attachment_image_url( $role->icon, 'thumbnail', true ) : null,
 			)
 		);
 
