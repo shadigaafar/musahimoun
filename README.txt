@@ -4,7 +4,7 @@ Donate link:
 Tags: contributors, guest author, authors, mutli-author, profile
 Requires at least: 6.4
 Tested up to: 6.8
-Stable tag: 1.2.2
+Stable tag: 1.2.3
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -43,11 +43,15 @@ Only if it was a block theme, Musahimoun developped specifically for block theme
 1.This is How it will look in front end.
 
 == Changelog ==
+= 1.2.3 (2025-09-15) =
+* Fix fatal error.
+
+= 1.2.2 (2025-09-15) =
+* Fix fatal error.
+
 = 1.2.1 (2025-09-15) =
 * Fix fatal error.
-= 1.2.1 (2025-09-15) =
-* Fix fatal error.
-= Modify the foreign key constraint on database.
+* Modify the foreign key constraint on database.
 
 = 1.2.0 (2025-09-15) =
 * Fix front page 404 error when homepage is set to static.
