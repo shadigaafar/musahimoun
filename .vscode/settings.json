@@ -2,7 +2,7 @@
 	
 	"[php]": {
 		"editor.formatOnSave": true,
-		"editor.defaultFormatter": "persoderlind.vscode-phpcbf"
+		"editor.defaultFormatter": "valeryanm.vscode-phpsab"
 	},
 	"[javascript]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -17,5 +17,6 @@
 	},
 	"files.eol": "\n",
 	"cSpell.words": [],
-	"git.ignoreLimitWarning": true
+	"git.ignoreLimitWarning": true,
+	"phpsab.standard": "WordPress"
 }
