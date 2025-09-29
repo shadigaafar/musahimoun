@@ -107,8 +107,8 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 		 *
 		 * @return bool true if single contributor under default role, false otherwise.
 		 */
-		private function is_single_contributor_under_default_role() : bool {
-			$contributor_ids = get_the_contributor_ids();
+		private function is_single_contributor_under_default_role(): bool {
+			$contributor_ids                   = get_the_contributor_ids();
 			$is_contributor_under_default_role = is_contributors_under_default_role( $contributor_ids );
 			return count( $contributor_ids ) === 1 && $is_contributor_under_default_role;
 		}
@@ -124,10 +124,10 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 				return is_object( $this->contributor ) ? $this->contributor->name : $name;
 			}
 
-			if( is_singular() && $this->is_supported_post_type() && ! $this->is_single_contributor_under_default_role() ) {
+			if ( is_singular() && $this->is_supported_post_type() && ! $this->is_single_contributor_under_default_role() ) {
 				$contributor_name = get_the_contributors_field( 'name' )[0] ?? '';
 
-				if( ! empty( $contributor_name ) ) {
+				if ( ! empty( $contributor_name ) ) {
 					return $contributor_name;
 				}
 			}
@@ -146,10 +146,10 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 				return is_object( $this->contributor ) ? $this->contributor->description : $description;
 			}
 
-			if( is_singular() && $this->is_supported_post_type() && ! $this->is_single_contributor_under_default_role() ) {
+			if ( is_singular() && $this->is_supported_post_type() && ! $this->is_single_contributor_under_default_role() ) {
 				$description = get_the_contributors_field( 'description' )[0] ?? '';
 
-				if( ! empty( $description ) ) {
+				if ( ! empty( $description ) ) {
 					return $description;
 				}
 			}
@@ -168,10 +168,10 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 				return is_object( $this->contributor ) ? $this->contributor->email : $email;
 			}
 
-			if( is_singular() && $this->is_supported_post_type() && ! $this->is_single_contributor_under_default_role() ) {
+			if ( is_singular() && $this->is_supported_post_type() && ! $this->is_single_contributor_under_default_role() ) {
 				$email = get_the_contributors_field( 'email' )[0] ?? '';
 
-				if( ! empty( $email ) ) {
+				if ( ! empty( $email ) ) {
 					return $email;
 				}
 			}
@@ -192,22 +192,27 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 			return $id;
 		}
 
-
+		/**
+		 * Filters author URL.
+		 *
+		 * @param string $url author's URL, passed from WordPress filters for author's URL.
+		 * @return string author name.
+		 */
 		public function contributor_url( $url = '' ): string {
 
 			if ( is_author() ) {
 				return is_object( $this->contributor ) ? $this->contributor->url : $url;
 			}
 
-			if( is_singular() && $this->is_supported_post_type() && ! $this->is_single_contributor_under_default_role() ) {
+			if ( is_singular() && $this->is_supported_post_type() && ! $this->is_single_contributor_under_default_role() ) {
 				$url = get_the_contributors_field( 'url' )[0] ?? '';
 
-				if( ! empty( $url ) ) {
+				if ( ! empty( $url ) ) {
 					return $url;
 				}
 			}
 			return $url;
-		}	
+		}
 		/**
 		 * Filters post query on author page to display the posts associated the guest author.
 		 *
@@ -483,9 +488,9 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 					'sanitize_callback' => 'sanitize_text_field',
 					'auth_callback'     => function ( $request ) {
 						if ( $request->get_method() === 'GET' && current_user_can( 'edit_posts' ) ) {
-							return true; // any user editor can read
+							return true; // any user editor can read.
 						}
-						return current_user_can( 'manage_options' ); // only admins can update
+						return current_user_can( 'manage_options' ); // only admins can update.
 					},
 				)
 			);
@@ -603,9 +608,8 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 		 * Todo: do this in js then delete this.
 		 *
 		 * @param int $post_id The ID of the post being updated.
-		 * @param WP_Post $post The post object.
 		 */
-		public function update_post_authors_meta_on_update( $post_id, $post ) {
+		public function update_post_authors_meta_on_update( $post_id ) {
 			// Only update for supported post types.
 			if ( ! in_array( get_post_type( $post_id ), $this->selected_post_types, true ) ) {
 				return;
@@ -631,13 +635,13 @@ if ( ! class_exists( __NAMESPACE__ . '\\Mshmn_Contributor' ) ) :
 				array()
 			);
 
-			if ( empty( $author_ids )  || ! is_array( $author_ids ) ) {
+			if ( empty( $author_ids ) || ! is_array( $author_ids ) ) {
 				return;
 			}
 
 			$contributor_service = new Contributor_Service( array( 'include' => $author_ids ) );
-			$contributors = $contributor_service->get_results();
-			$author_names = isset( $contributors[0] ) && ! empty( $contributors[0]->name ) ? array_column( $contributors, 'name' ) : array();
+			$contributors        = $contributor_service->get_results();
+			$author_names        = isset( $contributors[0] ) && ! empty( $contributors[0]->name ) ? array_column( $contributors, 'name' ) : array();
 
 			if ( ! empty( $author_names ) ) {
 				update_post_meta( $post_id, MSHMN_POST_AUTHORS_META, implode( ',', $author_names ) );
