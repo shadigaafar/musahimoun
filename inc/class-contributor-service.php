@@ -22,6 +22,15 @@ if ( ! class_exists( __NAMESPACE__ . '\\Contributor_Service' ) ) :
 		 */
 		public $query_vars = array();
 
+
+		/**
+		 * Whether a non-role user is selected in the included roles.
+		 *
+		 * @since 1.0
+		 * @var bool
+		 */
+		private $none_role_user_selected = false;
+
 		/**
 		 * Constructor
 		 *
@@ -69,12 +78,21 @@ if ( ! class_exists( __NAMESPACE__ . '\\Contributor_Service' ) ) :
 			$qv = $this->fill_query_vars( $qv );
 		}
 
-		private function prepare_user_args( $query = array() ) {
-			
+		/**
+		 * Prepare arguments for WP_User_Query based on the current query vars.
+		 *
+		 * @return array Arguments for WP_User_Query.
+		 */
+		private function prepare_user_args(): array {
+
+			global $wpdb;
 			$qv = $this->query_vars;
 
-			// Retrieve and limit user IDs. Necessary to get them arranged with $guests.
-			$user_args  = array(
+			$included_roles = get_option( MSHMN_INCLUDED_USER_ROLES, array() );
+
+			$none_role_user_selected = in_array( 'none', $included_roles, true );
+
+			$user_args = array(
 				'include'        => $qv['include'],
 				'exclude'        => $qv['exclude'],
 				'search'         => $qv['search'] ? '*' . $qv['search'] . '*' : '',
@@ -85,16 +103,39 @@ if ( ! class_exists( __NAMESPACE__ . '\\Contributor_Service' ) ) :
 				'order'          => $qv['order'],
 				'fields'         => $this->map_to_user_field( $qv['fields'] ),
 				'nicename'       => $qv['nicename'],
-				'role__in'       => get_option( MSHMN_INCLUDED_USER_ROLES, array( 'author', 'editor', 'administrator' ) ),
+				// phpcs:ignore.
+				'meta_query'     => array(
+					'relation' => 'OR',
+					$none_role_user_selected ? array(
+						'key'     => $wpdb->prefix . 'capabilities',
+						'value'   => '^a:0:\{\}$',
+						'compare' => 'REGEXP',
+					) : array(),
+					...array_map(
+						function ( $role ) {
+							return array(
+								'key'     => $GLOBALS['wpdb']->prefix . 'capabilities',
+								'value'   => '"' . $role . '"',
+								'compare' => 'LIKE',
+							);
+						},
+						array_filter(
+							$included_roles,
+							function ( $role ) {
+								return 'none' !== $role;
+							}
+						)
+					),
+				),
 			);
 
-			if( empty( $user_args['include'] ) ) {
+			if ( empty( $user_args['include'] ) ) {
 				unset( $user_args['include'] );
 			} else {
 				$user_args['include'] = $this->filter_user_ids( (array) $user_args['include'] );
 			}
 
-			return $user_args;
+				return $user_args;
 		}
 		/**
 		 * Get all contributors (users and guests) based on query vars.
@@ -103,7 +144,7 @@ if ( ! class_exists( __NAMESPACE__ . '\\Contributor_Service' ) ) :
 		 * @return array|null Array of results, or null on failure.
 		 */
 		public function get_results( $output = OBJECT ) {
-			
+
 			$qv = $this->query_vars;
 
 			$user_args = $this->prepare_user_args( $qv );
@@ -113,17 +154,25 @@ if ( ! class_exists( __NAMESPACE__ . '\\Contributor_Service' ) ) :
 			if ( isset( $qv['fields'] ) ) {
 				$guest_args['field'] = 'all' === $qv['fields'] ? '' : $qv['fields'];
 			}
-			
+
 			$users = array();
 
-			//check if include is set and not empty after filtering. Important for not getting all users if no match.
-			if ( isset( $user_args['include'] ) && ! empty($this->filter_user_ids( $user_args['include'] )) ) {
+			// check if include is set and not empty after filtering. Important for not getting all users if no match.
+			if ( isset( $user_args['include'] ) && ! empty( $this->filter_user_ids( $user_args['include'] ) ) ) {
+
+				$user_query = new \WP_User_Query( $user_args );
+				$users      = ! empty( $user_query->get_results() ) ? $this->format_users( $user_query->get_results(), $output ) : array();
+			} elseif ( isset( $user_args['include'] ) && empty( $this->filter_user_ids( $user_args['include'] ) ) ) {
+				// do nothing, no users to get.
+				$users = array();
+			} else {
+				// If include is not set, get users normally.
 				$user_query = new \WP_User_Query( $user_args );
 				$users      = ! empty( $user_query->get_results() ) ? $this->format_users( $user_query->get_results(), $output ) : array();
 			}
 
 			$guest_service = new Guest_Service( $guest_args, ARRAY_A );
-			
+
 			$guests = $guest_service->get_results();
 
 			if ( ! empty( $guests ) ) {
