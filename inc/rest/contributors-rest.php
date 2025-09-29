@@ -63,9 +63,9 @@ add_action( 'rest_api_init', __NAMESPACE__ . '\\register_custom_user_guest_contr
  *
  * @since 1.0
  *
- * @param WP_REST_Request $request The REST API request object, automatically passed by WordPress.
+ * @param \WP_REST_Request $request The REST API request object, automatically passed by WordPress.
  *
- * @return WP_REST_Response The response object containing the combined list of users and guest authors.
+ * @return \WP_REST_Response The response object containing the combined list of users and guest authors.
  */
 function get_users_and_guest_contributors( \WP_REST_Request $request ) {
 	$search = $request->get_param( 'search' );

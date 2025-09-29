@@ -44,7 +44,7 @@ function get_guests( $args = array(), $output = OBJECT ): array {
  */
 function get_contributors( $args = array(), $output = OBJECT ): array {
 	$contributor_service = new \MSHMN\Contributor_Service( $args );
-	return (array) $contributor_service->get_results( $output);
+	return (array) $contributor_service->get_results( $output );
 }
 
 /**
@@ -91,8 +91,8 @@ function get_role_assingments(): array {
 		$contributors = array();
 
 		if ( ! empty( $role_assignment['contributors'] ) ) {
-			$contributors_ids   = (array) $role_assignment['contributors'];
-			$contributors = get_contributors( array( 'include' => $contributors_ids ), ARRAY_A );
+			$contributors_ids = (array) $role_assignment['contributors'];
+			$contributors     = get_contributors( array( 'include' => $contributors_ids ), ARRAY_A );
 		}
 
 		$role = (array) $roles->get_roles( array( 'include' => array( $role_assignment['role'] ) ), ARRAY_A )[0] ?? array();
@@ -388,7 +388,7 @@ function is_contributors_under_default_role( array $contributor_ids ): bool {
  *
  * @return array List of contributor IDs.
  */
-function get_the_contributor_ids() : array{
+function get_the_contributor_ids(): array {
 	$the_post_contributor_ids = ! empty( get_post_meta( get_the_ID(), MSHMN_POST_CONTRIBUTORS_META, true ) ) ? explode( ',', get_post_meta( get_the_ID(), MSHMN_POST_CONTRIBUTORS_META, true ) ) : array();
 	return $the_post_contributor_ids;
 }
@@ -402,17 +402,57 @@ function get_the_contributor_ids() : array{
  */
 function get_the_contributors_field( $field, $contributor_ids = array() ): array {
 
-	$the_post_contributor_ids =  $contributor_ids ?: get_the_contributor_ids();
+	$the_post_contributor_ids = ! empty( $contributor_ids ) ? $contributor_ids : get_the_contributor_ids();
 
 	if ( empty( $the_post_contributor_ids ) ) {
 		return array();
 	}
 
-	$contributors_field = get_contributors( array( 'include' => $the_post_contributor_ids, 'fields' => $field ) ) ?? null;
+	$contributors_field = get_contributors(
+		array(
+			'include' => $the_post_contributor_ids,
+			'fields'  => $field,
+		)
+	) ?? null;
 
 	if ( empty( $contributors ) ) {
 		return array();
 	}
 
 	return $contributors_field;
+}
+
+
+/**
+ * Logs a message to the WordPress debug log with contextual information.
+ *
+ * This function checks if WP_DEBUG is enabled before logging. It captures the
+ * file name and line number from which it was called, formats the message,
+ * and writes it to the debug log using error_log().
+ *
+ * @param string $message The message to log.
+ * @param string $level   Optional. The log level (e.g., 'info', 'warning', 'error'). Default is 'debug'.
+ */
+function debug_log( $message, $level = 'debug' ) {
+	if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
+		return;
+	}
+
+	// phpcs:ignore.
+	$backtrace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 1 )[0];
+	$file      = isset( $backtrace['file'] ) ? $backtrace['file'] : 'unknown file';
+	$line      = isset( $backtrace['line'] ) ? $backtrace['line'] : 'unknown line';
+
+	// Format message.
+	$log_message = sprintf(
+		'[%s] %s:%s - %s',
+		strtoupper( $level ),
+		$file,
+		$line,
+		$message
+	);
+
+	// Use error_log to write to debug.log.
+	// phpcs:ignore.
+	error_log( $log_message );
 }

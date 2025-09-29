@@ -233,8 +233,9 @@ function field_user_roles_callback() {
 	if ( ! isset( $wp_roles ) ) {
 		$wp_roles = wp_roles();
 	}
-	$all_roles      = $wp_roles->roles;
-	$selected_roles = (array) get_option( MSHMN_INCLUDED_USER_ROLES, array( 'author', 'editor', 'administrator' ) );
+	$all_roles         = $wp_roles->roles;
+	$all_roles['none'] = array( 'name' => __( 'User with No Role', 'musahimoun' ) );
+	$selected_roles    = (array) get_option( MSHMN_INCLUDED_USER_ROLES, array( 'author', 'editor', 'administrator' ) );
 
 	foreach ( $all_roles as $role_key => $role ) {
 		$checked = in_array( $role_key, $selected_roles, true ) ? 'checked' : '';
@@ -295,7 +296,9 @@ function handle_migration_request() {
 		if ( wp_verify_nonce( $nonce, 'mshmn_migrate_authors_action' ) ) {
 			include_once dirname( __DIR__ ) . '/class-migration-handler.php';
 			$handler = new \MSHMN\Migration\Migration_Handler();
-			if( ! $handler->is_ready ) return;
+			if ( ! $handler->is_ready ) {
+				return;
+			}
 			$handler->run_migration();
 
 			add_settings_error(
