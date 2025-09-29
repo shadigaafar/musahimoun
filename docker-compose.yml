@@ -1,67 +1,65 @@
 services:
-  php74:
-    build:
-      dockerfile: Dockerfile.74
-    ports:
-      - 8074:80
+    php74:
+        build:
+            dockerfile: Dockerfile.74
+        ports:
+            - 8074:80
 
-  php81:
-    build:
-      dockerfile: Dockerfile.81
-    ports:
-      - 8081:80
+    php81:
+        build:
+            dockerfile: Dockerfile.81
+        ports:
+            - 8081:80
 
-  wordpress_php74:
-    depends_on:
-      - db
-      - php74
-    image: wordpress:latest
-    restart: always
-    ports:
-      - 8080:80  # Port for WordPress on PHP 7.4
-    environment:
-      WORDPRESS_DB_HOST: db
-      WORDPRESS_DB_USER: exampleuser
-      WORDPRESS_DB_PASSWORD: examplepass
-      WORDPRESS_DB_NAME: exampledb
-    volumes:
-      - wordpress:/var/www/html
-      - ./:/var/www/html/wp-content/plugins/musahimoun # Mounting the plugin directory
-    links:
-      - php74
+    wordpress_php74:
+        depends_on:
+            - db
+            - php74
+        image: wordpress:latest
+        restart: always
+        ports:
+            - 8080:80 # Port for WordPress on PHP 7.4
+        environment:
+            WORDPRESS_DB_HOST: db
+            WORDPRESS_DB_USER: exampleuser
+            WORDPRESS_DB_PASSWORD: examplepass
+            WORDPRESS_DB_NAME: exampledb
+        volumes:
+            - ./:/var/www/html/wp-content/plugins/musahimoun # Mounting the plugin directory
+        links:
+            - php74
 
-  wordpress_php81:
-    depends_on:
-      - db
-      - php81
-    image: wordpress:latest
-    restart: always
-    ports:
-      - 8088:80  # Port for WordPress on PHP 8.1
-    environment:
-      WORDPRESS_DB_HOST: db
-      WORDPRESS_DB_USER: exampleuser
-      WORDPRESS_DB_PASSWORD: examplepass
-      WORDPRESS_DB_NAME: exampledb
-    volumes:
-      - wordpress:/var/www/html
-      - ./:/var/www/html/wp-content/plugins/musahimoun # Mounting the plugin directory
-    links:
-      - php81
+    wordpress_php81:
+        depends_on:
+            - db
+            - php81
+        image: wordpress:latest
+        restart: always
+        ports:
+            - 8088:80 # Port for WordPress on PHP 8.1
+        environment:
+            WORDPRESS_DB_HOST: db
+            WORDPRESS_DB_USER: myuser
+            WORDPRESS_DB_PASSWORD: mypass
+            WORDPRESS_DB_NAME: myapp_db
+        volumes:
+            - ./:/var/www/html/wp-content/plugins/musahimoun # Mounting the plugin directory
+        links:
+            - php81
 
-  db:
-    image: mysql:8
-    container_name: my_db
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: myapp_db
-      MYSQL_USER: myuser
-      MYSQL_PASSWORD: mypass
-    ports:
-      - "3306:3306"
-    volumes:
-      - db_data:/var/lib/mysql
+    db:
+        image: mysql:8
+        container_name: my_db
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: rootpass
+            MYSQL_DATABASE: myapp_db
+            MYSQL_USER: myuser
+            MYSQL_PASSWORD: mypass
+        ports:
+            - '3306:3306'
+        volumes:
+            - db_data:/var/lib/mysql
 volumes:
-  wordpress:
-  db_data:
+    wordpress:
+    db_data:
