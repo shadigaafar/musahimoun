@@ -7,6 +7,7 @@
 
 namespace MSHMN\blocks;
 
+use function MSHMN\Functions\get_contributors;
 use function MSHMN\Functions\get_role_assingments;
 
 /**
@@ -21,6 +22,27 @@ use function MSHMN\Functions\get_role_assingments;
 function render_block_role_assignment_loop( $attributes, $content, $block ) {
 
 	$role_assignments = get_role_assingments();
+
+	if ( is_author() ) {
+		$role_assignments = array(
+			array(
+				'contributors' => get_contributors(
+					array(
+						'include' => array( get_the_author_meta( 'ID' ) ),
+						'number'  => 1,
+					),
+					ARRAY_A
+				) ?? array(),
+				'role'         => array(
+					'name'              => '',
+					'prefix'            => '',
+					'avatar_visibility' => false,
+					'icon'              => null,
+					'nicename'          => '',
+				),
+			),
+		);
+	}
 
 	$classnames = 'mshmn-role-assignment-query-loop-block';
 
