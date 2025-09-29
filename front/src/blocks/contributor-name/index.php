@@ -60,7 +60,7 @@ function register_block_contributor_name() {
 	register_block_type_from_metadata(
 		__DIR__,
 		array(
-			'render_callback'             => 'MSHMN\blocks\render_block_contributor_name',
+			'render_callback' => 'MSHMN\blocks\render_block_contributor_name',
 		)
 	);
 }
