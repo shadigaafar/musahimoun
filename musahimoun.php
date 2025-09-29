@@ -193,17 +193,20 @@ if ( defined( 'ABSPATH' ) ) :
 	}
 	add_action( 'mshmn_plugin_activated', __NAMESPACE__ . '\\add_default_role' );
 
-	
-function on_plugin_activation_notify() {
-    if ( get_transient( 'musahimoun_activation_notice' ) ) {
-        ?>
-        <div class="notice notice-info is-dismissible">
-            <p><?php esc_html_e( 'Go to Musahimoun → Settings to configure the plugin.', 'musahimoun' ); ?></p>
-        </div>
-        <?php
-        // Remove the transient so it only shows once
-        delete_transient( 'musahimoun_activation_notice' );
-    }
-}
-add_action( 'admin_notices', __NAMESPACE__ . '\\on_plugin_activation_notify' );
+
+	/**
+	 * Notify user to configure the plugin on activation.
+	 */
+	function on_plugin_activation_notify() {
+		if ( get_transient( 'musahimoun_activation_notice' ) ) {
+			?>
+		<div class="notice notice-info is-dismissible">
+			<p><?php esc_html_e( 'Go to Musahimoun → Settings to configure the plugin.', 'musahimoun' ); ?></p>
+		</div>
+			<?php
+			// Remove the transient so it only shows once
+			delete_transient( 'musahimoun_activation_notice' );
+		}
+	}
+	add_action( 'admin_notices', __NAMESPACE__ . '\\on_plugin_activation_notify' );
 endif;
