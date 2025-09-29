@@ -152,6 +152,9 @@ $tagExclude = @(
     'node_modules*',
     'tests*',
     'test*',
+    '.editorconfig',
+    '.prettierrc.json',
+    '.php-cs-fixer.php',
     '^\..+',          # hidden files
     'docs*',
     'front/src',
