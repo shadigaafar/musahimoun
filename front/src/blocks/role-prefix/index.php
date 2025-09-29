@@ -16,7 +16,8 @@ namespace MSHMN\blocks;
  * @return string Returns the rendered post author name block.
  */
 function render_block_role_prefix( $attributes, $content, $block ) {
-	if ( ! isset( $block->context['postId'] ) ) {
+
+	if ( ! isset( $block->context['postId'] ) || is_author() ) { // role prefix not needed on author archive pages.
 		return '';
 	}
 
@@ -59,7 +60,7 @@ function register_block_role_prefix() {
 	register_block_type_from_metadata(
 		__DIR__,
 		array(
-			'render_callback'             => __NAMESPACE__ . '\\render_block_role_prefix',
+			'render_callback' => __NAMESPACE__ . '\\render_block_role_prefix',
 		)
 	);
 }
