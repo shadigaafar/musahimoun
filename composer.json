@@ -3,7 +3,8 @@
         "dealerdirect/phpcodesniffer-composer-installer": "*",
         "wp-coding-standards/wpcs": "*",
         "phpcompatibility/phpcompatibility-wp": "*",
-        "squizlabs/php_codesniffer": "*"
+        "squizlabs/php_codesniffer": "*",
+        "friendsofphp/php-cs-fixer": "^3.66"
     },
     "config": {
         "allow-plugins": {
@@ -17,7 +18,5 @@
             "wp i18n update-po  languages/musahimoun.pot languages",
             "wp i18n make-mo languages"
         ]
-    },
-    "require": {
     }
 }
