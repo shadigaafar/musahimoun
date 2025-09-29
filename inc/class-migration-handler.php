@@ -40,7 +40,7 @@ if ( ! class_exists( __NAMESPACE__ . '\\Migration_Handler' ) ) :
 		 * @return void
 		 */
 		public function run_migration() {
-			// PublishPress Authors: taxonomy linking to CPT ppma_authors
+			// PublishPress Authors: taxonomy linking to CPT ppma_authors.
 			if ( $this->is_ready ) {
 				$this->migrate_publishpress_authors();
 			}
@@ -192,13 +192,21 @@ if ( ! class_exists( __NAMESPACE__ . '\\Migration_Handler' ) ) :
 				// Store contributor ID in post meta as a comma-separated string.
 			if ( $contributor_id && $post_id ) {
 				$existing = get_post_meta( $post_id, MSHMN_POST_CONTRIBUTORS_META, true );
-				$ids      = $existing ? explode( ',', $existing ) : array();
-				if ( ! in_array( $contributor_id, $ids ) ) {
+				$ids      = $existing ? (int) explode( ',', $existing ) : array();
+				if ( ! in_array( $contributor_id, $ids, true ) ) {
 					$ids[] = $contributor_id;
 				}
 				update_post_meta( $post_id, MSHMN_POST_CONTRIBUTORS_META, implode( ',', $ids ) );
 			}
 		}
+
+		/**
+		 * Assign role block to a post.
+		 *
+		 * @param int   $post_id Post ID.
+		 * @param array $role_assignments Role assignments.
+		 * @return void
+		 */
 		private function assign_role_block_to_post( $post_id, $role_assignments ) {
 			update_post_meta( $post_id, MSHMN_ROLE_ASSINGMENTS_META, $role_assignments );
 		}
