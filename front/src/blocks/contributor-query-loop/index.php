@@ -7,6 +7,8 @@
 
 namespace MSHMN\blocks;
 
+use function MSHMN\Functions\debug_log;
+
 /**
  * Renders the `mshmn/author-query-loop` block on the server.
  *
@@ -29,9 +31,14 @@ function render_block_author_query_loop( $attributes, $content, $block ) {
 	if ( ! isset( $contributors ) ) {
 		return '';
 	}
+
 	foreach ( $contributors as $contributor_index => $contributor ) {
 
 		if ( ! is_array( $contributor ) ) {
+			debug_log(
+				'Contributor is not an array',
+				'error',
+			);
 			break;
 		}
 
