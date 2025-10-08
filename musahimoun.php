@@ -204,7 +204,7 @@ if ( defined( 'ABSPATH' ) ) :
 			<p><?php esc_html_e( 'Go to Musahimoun → Settings to configure the plugin.', 'musahimoun' ); ?></p>
 		</div>
 			<?php
-			// Remove the transient so it only shows once
+			// Remove the transient so it only shows once.
 			delete_transient( 'musahimoun_activation_notice' );
 		}
 	}
