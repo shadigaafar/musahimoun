@@ -178,7 +178,8 @@ if ( ! class_exists( __NAMESPACE__ . '\\Guest_Service' ) ) :
 			}
 
 			if ( isset( $qv['nicename'] ) && ! empty( $qv['nicename'] ) ) {
-				$nicename           = $qv['nicename'];
+				$nicename = sanitize_text_field( wp_unslash( urldecode( $qv['nicename'] ) ) );
+
 				$this->query_where .= $wpdb->prepare( ' AND nicename = %s', $nicename );
 			}
 
@@ -272,7 +273,7 @@ if ( ! class_exists( __NAMESPACE__ . '\\Guest_Service' ) ) :
 		 */
 		private function prepare_data( $data, $for_type = 'insert' ) {
 			$id       = $this->generate_unique_id();
-			$nicename = isset( $data['nicename'] ) && ! $this->nicename_exists( $data['nicename'] ) ? $data['nicename'] :  $this->generate_nicename( $data['name'] );
+			$nicename = isset( $data['nicename'] ) && ! $this->nicename_exists( $data['nicename'] ) ? $data['nicename'] : $this->generate_nicename( $data['name'] );
 
 			$prepared = array(
 				'name'        => trim( $data ['name'] ),
@@ -303,7 +304,8 @@ if ( ! class_exists( __NAMESPACE__ . '\\Guest_Service' ) ) :
 		public function insert( $data, $format = null ) {
 			global $wpdb;
 			$prepared_data = $this->prepare_data( $data );
-			$inserted = $wpdb->insert( $this->table_name, $prepared_data, $format ?? $this->format );
+			//phpcs:ignore.
+			$inserted      = $wpdb->insert( $this->table_name, $prepared_data, $format ?? $this->format );
 			if ( $inserted ) {
 				return $prepared_data['id'];
 			}
