@@ -21,9 +21,9 @@ services:
             - 8080:80 # Port for WordPress on PHP 7.4
         environment:
             WORDPRESS_DB_HOST: db
-            WORDPRESS_DB_USER: exampleuser
-            WORDPRESS_DB_PASSWORD: examplepass
-            WORDPRESS_DB_NAME: exampledb
+            WORDPRESS_DB_USER: myuser
+            WORDPRESS_DB_PASSWORD: mypass
+            WORDPRESS_DB_NAME: myapp_db
         volumes:
             - ./:/var/www/html/wp-content/plugins/musahimoun # Mounting the plugin directory
         links:
