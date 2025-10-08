@@ -24,14 +24,6 @@ if ( ! class_exists( __NAMESPACE__ . '\\Contributor_Service' ) ) :
 
 
 		/**
-		 * Whether a non-role user is selected in the included roles.
-		 *
-		 * @since 1.0
-		 * @var bool
-		 */
-		private $none_role_user_selected = false;
-
-		/**
 		 * Constructor
 		 *
 		 * @param null|array $query Optional. The query variables.
@@ -171,11 +163,34 @@ if ( ! class_exists( __NAMESPACE__ . '\\Contributor_Service' ) ) :
 				$users      = ! empty( $user_query->get_results() ) ? $this->format_users( $user_query->get_results(), $output ) : array();
 			}
 
+			if ( isset( $guest_args['fields'] ) && 'url' === $guest_args['fields'] ) {
+				$guest_args['fields'] = 'nicename';
+			}
 			$guest_service = new Guest_Service( $guest_args, ARRAY_A );
 
 			$guests = $guest_service->get_results();
 
-			if ( ! empty( $guests ) ) {
+			$is_object_or_array = ! empty( $guests ) && is_array( $guests ) && ( is_object( $guests[0] ) || is_array( $guests[0] ) );
+
+			if ( ! empty( $guests ) && isset( $guest_args['field'] ) && 'url' === $guest_args['field'] ) {
+				$guests = array_map(
+					function ( $guest ) {
+						return get_author_posts_url( $guest['id'], rawurldecode( $guest['nicename'] ) );
+					},
+					$guests
+				);
+			}
+
+			if ( ! empty( $guests ) && isset( $guest_args['field'] ) && 'avatar' === $guest_args['field'] ) {
+				$guests = array_map(
+					function ( $guest ) {
+						return ! empty( $guest['avatar'] ) ? wp_get_attachment_image_url( $guest['avatar'] ) : MSHMN_PLUGIN_URL . '\\person.svg';
+					},
+					$guests
+				);
+			}
+
+			if ( $is_object_or_array ) {
 				foreach ( $guests as $key => $guest ) {
 					if ( ! is_array( $guest ) ) {
 						break;
@@ -197,16 +212,16 @@ if ( ! class_exists( __NAMESPACE__ . '\\Contributor_Service' ) ) :
 					}
 				}
 			}
-			// TODO : FIX SORTING TO BE THE SAME AS IT WAS GET.
-			return array_merge( $users ?? array(), $guests ?? array() );
+				// TODO : FIX SORTING TO BE THE SAME AS IT WAS GET.
+				return array_merge( $users ?? array(), $guests ?? array() );
 		}
 
-		/**
-		 * Map contributor field to user field.
-		 *
-		 * @param string $field The field.
-		 * @return string User field.
-		 */
+			/**
+			 * Map contributor field to user field.
+			 *
+			 * @param string $field The field.
+			 * @return string User field.
+			 */
 		public function map_to_user_field( $field ) {
 			switch ( $field ) {
 				case 'id':
@@ -224,12 +239,12 @@ if ( ! class_exists( __NAMESPACE__ . '\\Contributor_Service' ) ) :
 			}
 		}
 
-		/**
-		 * Filter an array of IDs to return only user IDs.
-		 *
-		 * @param array $ids Array of IDs to filter.
-		 * @return array Array of user IDs.
-		 */
+			/**
+			 * Filter an array of IDs to return only user IDs.
+			 *
+			 * @param array $ids Array of IDs to filter.
+			 * @return array Array of user IDs.
+			 */
 		private function filter_user_ids( $ids ) {
 			$user_ids = array();
 
@@ -242,13 +257,13 @@ if ( ! class_exists( __NAMESPACE__ . '\\Contributor_Service' ) ) :
 			return $user_ids;
 		}
 
-		/**
-		 * Format the user results to match the structure expected by the `Guest_Service` class.
-		 *
-		 * @param array  $users Array of user objects.
-		 * @param string $output Format of the output (OBJECT or ARRAY_A).
-		 * @return array Array of formatted results.
-		 */
+			/**
+			 * Format the user results to match the structure expected by the `Guest_Service` class.
+			 *
+			 * @param array  $users Array of user objects.
+			 * @param string $output Format of the output (OBJECT or ARRAY_A).
+			 * @return array Array of formatted results.
+			 */
 		private function format_users( $users, $output = OBJECT ) {
 
 			if ( ! isset( $users ) ) {
